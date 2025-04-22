@@ -73,3 +73,21 @@ class ChallengeSerializer(serializers.ModelSerializer):
             'difficulty','muscle_group','workout_type',
             'image_url','created_at'
         ]
+
+
+        
+class ProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Progress
+        fields = ['progress_date', 'progress_day', 'participant']
+        
+
+
+class ChallengeParticipantSerializer(serializers.ModelSerializer):
+    progress = ProgressSerializer(many=True, read_only=True)  # Nested progress information
+
+    class Meta:
+        model = ChallengeParticipant
+        fields = ['participate_id', 'user', 'challenge', 'date_joined', 'progress']
+        
+

@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import CustomUser,Challenge
+from .models import *
 
 
 # Register your CustomUser with a custom admin interface
@@ -38,3 +38,14 @@ class ChallengeAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="height:50px;"/>', obj.image.url)
         return ""
     thumb.short_description = "Img"
+    
+@admin.register(ChallengeParticipant)
+class ChallengeParticipantAdmin(admin.ModelAdmin):
+    list_display = ('user', 'challenge', 'date_joined')
+    search_fields = ('user__username', 'challenge__title')
+
+
+@admin.register(Progress)
+class ProgressAdmin(admin.ModelAdmin):
+    list_display = ('participant', 'progress_date', 'progress_day')
+    search_fields = ('participant__user__username', 'participant__challenge__title')

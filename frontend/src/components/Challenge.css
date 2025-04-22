@@ -164,7 +164,7 @@
 /* === Image === */
 .challenge-image {
   width: 100%; /* Set to 100% of the container's width */
-  height: 200px; /* Fixed height for all images */
+  height: 300px; /* Fixed height for all images */
   object-fit: cover; /* Ensures images fill the container without distorting */
   margin-top: 10px;
   margin-bottom: 10px;

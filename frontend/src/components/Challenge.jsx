@@ -29,10 +29,48 @@ const Challenge = () => {
     return matchDifficulty && matchMuscle && matchType;
   });
 
-  const handleJoinChallenge = (challengeId) => {
-    setJoinMessage(`Successfully joined challenge #${challengeId}!`);
-    setTimeout(() => setJoinMessage(null), 3000);
+  const handleJoinChallenge = async (challengeId) => {
+    try {
+      // First verify we have a token
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setJoinMessage('Please login first');
+        return;
+      }
+  
+      console.log('Using token:', token); // Debug log
+  
+      const response = await AxiosInstance.post(
+        '/api/challenge-participants/', 
+        { challenge: challengeId }, 
+        {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      console.log('Challenge joined:', response.data);
+      setJoinMessage('Successfully joined the challenge!');
+      setTimeout(() => setJoinMessage(null), 3000);
+    } catch (error) {
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      setJoinMessage(
+        error.response?.data?.detail || 
+        error.response?.data?.message || 
+        'Error joining the challenge'
+      );
+      setTimeout(() => setJoinMessage(null), 3000);
+    }
   };
+  
+  
 
   const handleAddChallenge = async (newChallenge) => {
     try {
