@@ -1,17 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { 
-  FaHome, FaDumbbell, FaBookOpen, FaUserCircle, 
-  FaCaretDown, FaSignOutAlt, FaCog, 
-  FaHistory, FaChartLine, FaTrophy 
+import {
+  FaHome, FaDumbbell, FaBookOpen, FaUserCircle,
+  FaCaretDown, FaSignOutAlt, FaCog,
+  FaHistory, FaChartLine, FaTrophy
 } from "react-icons/fa";
 import "./Navbar.css";
 
-export default function Navbar({ user, content }) {
+export default function Navbar({ content }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const loggedIn = !!user;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("authToken");
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  };
 
   const dropdownItems = [
     { icon: <FaUserCircle />, text: "Profile", path: "/profile" },
@@ -28,7 +43,7 @@ export default function Navbar({ user, content }) {
           <Link to="/" className="navbar-brand">
             <FaDumbbell /> <span>FitLife</span>
           </Link>
-          
+
           <nav className="navbar-links">
             <NavLink to="/" icon={<FaHome />} text="Home" current={pathname} />
             <NavLink to="/education" icon={<FaBookOpen />} text="Education" current={pathname} />
@@ -36,7 +51,7 @@ export default function Navbar({ user, content }) {
           </nav>
 
           <div className="navbar-auth">
-            {loggedIn ? (
+            {user ? (
               <div className="profile-dropdown">
                 <button onClick={() => setDropdownOpen(!dropdownOpen)}>
                   {user?.avatar ? (
@@ -46,11 +61,11 @@ export default function Navbar({ user, content }) {
                   )}
                   <FaCaretDown className={dropdownOpen ? 'open' : ''} />
                 </button>
-                
+
                 {dropdownOpen && (
                   <div className="dropdown-menu">
                     {dropdownItems.map((item, i) => (
-                      <Link 
+                      <Link
                         key={i}
                         to={item.path}
                         onClick={() => setDropdownOpen(false)}
@@ -58,7 +73,7 @@ export default function Navbar({ user, content }) {
                         {item.icon} <span>{item.text}</span>
                       </Link>
                     ))}
-                    <button onClick={() => { navigate("/login"); /* Add logout logic */ }}>
+                    <button onClick={handleLogout}>
                       <FaSignOutAlt /> <span>Logout</span>
                     </button>
                   </div>
@@ -73,7 +88,6 @@ export default function Navbar({ user, content }) {
         </div>
       </header>
 
-      {/* Content area below the fixed navbar */}
       <main className="content-container">
         {content}
       </main>
