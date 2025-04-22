@@ -1,0 +1,172 @@
+/* === Container and Layout === */
+.challenges-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.challenges-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* === Headings === */
+.challenges-header {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+/* === Notifications === */
+.join-message {
+  padding: 0.75rem 1rem;
+  background-color: #ecfdf5; /* emerald-50 */
+  color: #065f46; /* emerald-900 */
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+/* === Filters === */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db; /* gray-300 */
+  outline: none;
+}
+
+.filter-select:focus {
+  outline: 2px solid #9333ea; /* purple-600 */
+}
+
+/* === Challenges Grid === */
+.challenges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* === Card === */
+.challenge-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.challenge-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* === Card Header === */
+.card-header {
+  padding: 1.5rem;
+}
+
+.card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.25rem; /* text-xl */
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.card-description {
+  color: #4b5563; /* gray-600 */
+  margin-bottom: 1rem;
+}
+
+/* === Card Content === */
+.card-content {
+  flex-grow: 1;
+  padding: 0 1.5rem 1.5rem;
+}
+
+.details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-icon {
+  color: #9333ea; /* purple-600 */
+  font-size: 1rem;
+}
+
+.participants {
+  font-size: 0.875rem; /* text-sm */
+  color: #6b7280; /* gray-500 */
+  margin-top: 0.5rem;
+}
+
+/* === Card Footer === */
+.card-footer {
+  padding: 1rem;
+  background-color: #f9fafb; /* gray-50 */
+  border-top: 1px solid #e5e7eb; /* gray-200 */
+}
+
+.join-button {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-color: #9333ea; /* purple-600 */
+  color: white;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.join-button:hover {
+  background-color: #7e22ce; /* purple-700 */
+}
+
+/* === Difficulty Icons === */
+.difficulty-icon {
+  font-size: 1.25rem; /* text-xl */
+}
+
+.difficulty-icon.beginner {
+  color: #10b981; /* emerald-500 */
+}
+
+.difficulty-icon.intermediate {
+  color: #f59e0b; /* amber-500 */
+}
+
+.difficulty-icon.advanced {
+  color: #ef4444; /* red-500 */
+}
+
+/* === Utilities === */
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* === Image === */
+.challenge-image {
+  width: 100%; /* Set to 100% of the container's width */
+  height: 200px; /* Fixed height for all images */
+  object-fit: cover; /* Ensures images fill the container without distorting */
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+

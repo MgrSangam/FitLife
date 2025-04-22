@@ -60,3 +60,16 @@ class LoginSerializer(serializers.Serializer):
         ret = super().to_representation(instance)
         ret.pop('password', None)
         return ret
+    
+class ChallengeSerializer(serializers.ModelSerializer):
+    image_url = serializers.ImageField(source='image', read_only=True)
+
+    class Meta:
+        model  = Challenge
+        # include image_url so frontend gets the absolute URL
+        fields = [
+            'id','title','description',
+            'duration','start_date','end_date',
+            'difficulty','muscle_group','workout_type',
+            'image_url','created_at'
+        ]

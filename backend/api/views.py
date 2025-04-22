@@ -116,3 +116,8 @@ class LoginView(viewsets.ViewSet):
             return Response(serializer.errors,status = 400)
         
         
+
+class ChallengeView(viewsets.ReadOnlyModelViewSet):
+    queryset = Challenge.objects.all().order_by('-created_at')
+    serializer_class = ChallengeSerializer
+    permission_classes = [permissions.AllowAny]

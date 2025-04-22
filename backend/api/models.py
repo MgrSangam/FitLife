@@ -50,3 +50,41 @@ def passwords_reset_token_created(reset_password_token, *args, **kwargs):
     except Exception as e:
         print(f"Failed to send password reset email: {e}")
         # Consider logging this error properly
+        
+# for challenges
+class Challenge(models.Model):
+    DIFFICULTY_CHOICES = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advance', 'Advance'),
+    ]
+    
+    MUSCLE_GROUP_CHOICES = [
+        ('chest', 'Chest'),
+        ('core', 'Core'),
+        ('full-body', 'Full Body'),
+    ]
+    
+    WORKOUT_TYPE_CHOICES = [
+        ('strength', 'Strength'),
+        ('cardio', 'Cardio'),
+    ]
+    
+    title        = models.CharField(max_length=200)
+    description  = models.TextField()
+    duration     = models.CharField(max_length=50)  # e.g. “30 days”
+    start_date   = models.DateField()
+    end_date     = models.DateField()
+    difficulty   = models.CharField(max_length=12, choices=DIFFICULTY_CHOICES)
+    muscle_group = models.CharField(max_length=12, choices=MUSCLE_GROUP_CHOICES)
+    workout_type = models.CharField(max_length=12, choices=WORKOUT_TYPE_CHOICES)
+    image        = models.ImageField(
+                      upload_to='challenge_images/',
+                      null=True,
+                      blank=True,
+                      help_text="Upload a header image for this challenge"
+                   )
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
