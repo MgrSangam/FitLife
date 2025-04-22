@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.contrib.auth import authenticate  # Add this import
+from rest_framework.authtoken.models import Token  
 from . models import *
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -91,3 +93,33 @@ class ChallengeParticipantSerializer(serializers.ModelSerializer):
         fields = ['participate_id', 'user', 'challenge', 'date_joined', 'progress']
         
 
+# Add to your existing serializers.py
+
+# Add to your serializers.py
+
+class EducationalContentSerializer(serializers.ModelSerializer):
+    thumbnail_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = EducationalContent
+        fields = [
+            'id', 'title', 'description', 'content_type', 
+            'upload_date', 'thumbnail_url',
+            'video_url', 'duration', 'blog_content'
+        ]
+    
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail:
+            return self.context['request'].build_absolute_uri(obj.thumbnail.url)
+        return None
+    
+    def validate(self, data):
+        """Ensure the correct fields are provided based on content_type"""
+        content_type = data.get('content_type', self.instance.content_type if self.instance else None)
+        
+        if content_type == 'video' and not data.get('video_url'):
+            raise serializers.ValidationError("Video URL is required for video content")
+        elif content_type == 'blog' and not data.get('blog_content'):
+            raise serializers.ValidationError("Blog content is required for blog posts")
+        
+        return data

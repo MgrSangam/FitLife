@@ -5,7 +5,8 @@ from .models import *
 from rest_framework.response import Response
 from django.db import transaction
 from django.contrib.auth import get_user_model,authenticate
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.decorators import action
 from knox.models import AuthToken
 from knox.auth import TokenAuthentication
 
@@ -52,35 +53,44 @@ class LoginView(viewsets.ViewSet):
     serializer_class = LoginSerializer
     
     def create(self, request):
+        # Step 1: Validate input data
         serializer = self.serializer_class(data=request.data)
-        
         if not serializer.is_valid():
             return Response(
                 {"error": "Invalid input", "details": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
-        user = authenticate(
-            request,
-            email=serializer.validated_data['email'],
-            password=serializer.validated_data['password']
-        )
+        
+        # Step 2: Extract validated data
+        email = serializer.validated_data.get('email')
+        password = serializer.validated_data.get('password')
+        
+        # Step 3: Authenticate user
+        user = authenticate(request, email=email, password=password)
         
         if not user:
             return Response(
-                {"error": "Invalid credentials"},
+                {"error": "Invalid credentials - email or password incorrect"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+        
+        # Step 4: Only create token for authenticated users
+        try:
+            _, token = AuthToken.objects.create(user)
+            return Response({
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username
+                },
+                "token": token
+            }, status=status.HTTP_200_OK)
             
-        _, token = AuthToken.objects.create(user)
-        return Response({
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username
-            },
-            "token": token
-        }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": "Could not create authentication token"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
         
 
@@ -111,3 +121,53 @@ class ProgressViewSet(viewsets.ModelViewSet):
         # Optionally filter by participant (user and challenge)
         user = self.request.user
         return Progress.objects.filter(participant__user=user)
+    
+
+# Add to your views.py
+
+class EducationalContentViewSet(viewsets.ModelViewSet):
+    queryset = EducationalContent.objects.all().order_by('-upload_date')
+    serializer_class = EducationalContentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_permissions(self):
+        # Only admins can create/update/delete content
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return super().get_permissions()
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # You could add filtering here if needed (e.g., by content_type)
+        return queryset
+    
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def rate_content(self, request, pk=None):
+        content = self.get_object()
+        rating = request.data.get('rating')
+        
+        if not rating or not 1 <= float(rating) <= 5:
+            return Response(
+                {"error": "Please provide a valid rating between 1 and 5"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # In a real implementation, you'd want to:
+        # 1. Track which user submitted the rating
+        # 2. Store individual ratings in a separate model
+        # 3. Calculate average rating from all user ratings
+        
+        content.rating = (content.rating + float(rating)) / 2
+        content.save()
+        
+        return Response(
+            {"message": "Rating submitted successfully", "new_rating": content.rating},
+            status=status.HTTP_200_OK
+        )
+    
+    @action(detail=True, methods=['post'])
+    def increment_views(self, request, pk=None):
+        content = self.get_object()
+        content.views += 1
+        content.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

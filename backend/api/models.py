@@ -109,3 +109,47 @@ class Progress(models.Model):
 
     def __str__(self):
         return f"Day {self.progress_day} - {self.participant.user.username} - {self.participant.challenge.title}"
+
+
+# Add to your existing models.py
+
+# Add to your models.py
+
+class EducationalContent(models.Model):
+    CONTENT_TYPE_CHOICES = [
+        ('video', 'Video'),
+        ('blog', 'Blog'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    content_type = models.CharField(max_length=10, choices=CONTENT_TYPE_CHOICES)
+    upload_date = models.DateTimeField(auto_now_add=True)
+    
+    # Common fields (will be null for one type depending on content_type)
+    thumbnail = models.ImageField(upload_to='content_thumbnails/', blank=True, null=True)
+    
+    # Video-specific fields (only used when content_type='video')
+    video_url = models.URLField(blank=True, null=True)
+    duration = models.DurationField(blank=True, null=True)
+    
+    # Blog-specific fields (only used when content_type='blog')
+    blog_content = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.get_content_type_display()}: {self.title}"
+    
+    class Meta:
+        ordering = ['-upload_date']
+        verbose_name_plural = "Educational Content"
+        
+    def clean(self):
+        """Validate that the correct fields are set based on content_type"""
+        if self.content_type == 'video':
+            if not self.video_url:
+                raise ValidationError("Video URL is required for video content")
+            self.blog_content = None  # Clear blog content if switching to video
+        elif self.content_type == 'blog':
+            if not self.blog_content:
+                raise ValidationError("Blog content is required for blog posts")
+            self.video_url = None  # Clear video URL if switching to blog

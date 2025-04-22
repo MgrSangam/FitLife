@@ -9,6 +9,7 @@ import PasswordReset from './components/PasswordReset '
 import { Routes, Route,useLocation } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoutes'
 import Challenge from './components/Challenge'
+import Education from './components/Education'
 
 function App() {
   const location = useLocation()
@@ -34,6 +35,7 @@ function App() {
               <Route element={<ProtectedRoute/>}>
                   <Route path='/home' element={<Home />} />
                   <Route path='/challenges' element={<Challenge />} />
+                  <Route path='/education' element={<Education/>} />
               </Route>
              
               

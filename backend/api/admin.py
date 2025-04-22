@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import *
+from django import forms
 
 
 # Register your CustomUser with a custom admin interface
@@ -49,3 +50,62 @@ class ChallengeParticipantAdmin(admin.ModelAdmin):
 class ProgressAdmin(admin.ModelAdmin):
     list_display = ('participant', 'progress_date', 'progress_day')
     search_fields = ('participant__user__username', 'participant__challenge__title')
+    
+    
+
+class EducationalContentForm(forms.ModelForm):
+    class Meta:
+        model = EducationalContent
+        fields = '__all__'
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Show/hide fields based on content type
+        if self.instance and self.instance.content_type:
+            if self.instance.content_type == 'video':
+                self.fields['blog_content'].widget = forms.HiddenInput()
+            elif self.instance.content_type == 'blog':
+                self.fields['video_url'].widget = forms.HiddenInput()
+                self.fields['duration'].widget = forms.HiddenInput()
+
+@admin.register(EducationalContent)
+class EducationalContentAdmin(admin.ModelAdmin):
+    form = EducationalContentForm
+    list_display = ('title', 'content_type', 'upload_date', 'preview_thumbnail')
+    list_filter = ('content_type',)
+    search_fields = ('title', 'description')
+    date_hierarchy = 'upload_date'
+    
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'description', 'content_type', 'thumbnail')
+        }),
+        ('Video Content', {
+            'fields': ('video_url', 'duration'),
+            'classes': ('video-content',)
+        }),
+        ('Blog Content', {
+            'fields': ('blog_content',),
+            'classes': ('blog-content',)
+        }),
+    )
+    
+    class Media:
+        js = ('admin/js/content_type_toggle.js',)  # You'll need to create this
+    
+    def preview_thumbnail(self, obj):
+        if obj.thumbnail:
+            return format_html('<img src="{}" style="height:50px;"/>', obj.thumbnail.url)
+        return ""
+    preview_thumbnail.short_description = "Thumbnail"
+    
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if obj:
+            if obj.content_type == 'video':
+                # Hide blog fields
+                fieldsets[2][1]['classes'] += ('hidden',)
+            elif obj.content_type == 'blog':
+                # Hide video fields
+                fieldsets[1][1]['classes'] += ('hidden',)
+        return fieldsets
