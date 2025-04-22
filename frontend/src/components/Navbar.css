@@ -1,0 +1,226 @@
+/* ===== Navbar Base Styles ===== */
+.navbar-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 4rem;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ===== Brand Styles ===== */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #7c3aed;
+}
+
+.navbar-brand svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #7c3aed;
+}
+
+/* ===== Navigation Links ===== */
+.navbar-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-left: 2rem;
+}
+
+.navbar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4b5563;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 0.5rem 0;
+}
+
+.navbar-link svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.navbar-link:hover {
+  color: #7c3aed;
+}
+
+.navbar-link.active {
+  color: #7c3aed;
+  border-bottom: 2px solid #7c3aed;
+}
+
+/* ===== Auth Section ===== */
+.navbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Login Button */
+.navbar-auth > a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.navbar-auth > a:hover {
+  background-color: #e5e7eb;
+}
+
+.navbar-auth > a svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ===== Profile Dropdown ===== */
+.profile-dropdown {
+  position: relative;
+}
+
+.profile-dropdown > button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.profile-dropdown img {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-dropdown svg {
+  width: 1rem;
+  height: 1rem;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.profile-dropdown > button svg[data-icon="caret-down"] {
+  margin-left: 0.25rem;
+}
+
+.profile-dropdown > button svg[data-icon="user-circle"] {
+  width: 2rem;
+  height: 2rem;
+  color: #7c3aed;
+}
+
+.profile-dropdown > button svg.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 200px;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  border: 1px solid #e5e7eb;
+  opacity: 0;
+  transform: translateY(-10px);
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.profile-dropdown:hover .dropdown-menu,
+.dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.dropdown-menu a,
+.dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  text-align: left;
+  color: #4b5563;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: #f9fafb;
+}
+
+.dropdown-menu svg {
+  width: 1rem;
+  height: 1rem;
+  color: #6b7280;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 0.25rem 0;
+}
+
+.dropdown-menu button.logout {
+  color: #ef4444;
+}
+
+.dropdown-menu button.logout svg {
+  color: #ef4444;
+}
+/* Add to Navbar.css */
+.content-container {
+  margin-top: 4rem; /* Same as navbar height */
+  padding: 1.5rem;
+  min-height: calc(100vh - 4rem); /* Full height minus navbar */
+}
+
+/* Rest of your existing navbar styles... */
+/* ===== Mobile Responsiveness ===== */
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+  }
+  
+  .navbar-container {
+    padding: 0 1rem;
+  }
+}
