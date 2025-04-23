@@ -10,6 +10,7 @@ import { Routes, Route,useLocation } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoutes'
 import Challenge from './components/Challenge'
 import Education from './components/Education'
+import EducationDetail from './components/EducationDetail'
 
 function App() {
   const location = useLocation()
@@ -36,6 +37,7 @@ function App() {
                   <Route path='/home' element={<Home />} />
                   <Route path='/challenges' element={<Challenge />} />
                   <Route path='/education' element={<Education/>} />
+                  <Route path='/education/:id' element={<EducationDetail/>} />
               </Route>
              
               

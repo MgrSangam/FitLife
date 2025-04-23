@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from django.core.exceptions import ValidationError
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.dispatch import receiver
 from django.urls import reverse
@@ -120,36 +120,27 @@ class EducationalContent(models.Model):
         ('video', 'Video'),
         ('blog', 'Blog'),
     ]
-    
+    CATEGORY_CHOICES = [
+        ('workouts', 'Workouts'),
+        ('nutrition', 'Nutrition'),
+    ]
+
     title = models.CharField(max_length=200)
     description = models.TextField()
     content_type = models.CharField(max_length=10, choices=CONTENT_TYPE_CHOICES)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='workouts')
     upload_date = models.DateTimeField(auto_now_add=True)
-    
-    # Common fields (will be null for one type depending on content_type)
+
     thumbnail = models.ImageField(upload_to='content_thumbnails/', blank=True, null=True)
-    
-    # Video-specific fields (only used when content_type='video')
     video_url = models.URLField(blank=True, null=True)
-    duration = models.DurationField(blank=True, null=True)
-    
-    # Blog-specific fields (only used when content_type='blog')
     blog_content = models.TextField(blank=True, null=True)
-    
+
+    views = models.IntegerField(default=0)
+    rating = models.FloatField(default=0.0)
+
     def __str__(self):
         return f"{self.get_content_type_display()}: {self.title}"
-    
+
     class Meta:
         ordering = ['-upload_date']
         verbose_name_plural = "Educational Content"
-        
-    def clean(self):
-        """Validate that the correct fields are set based on content_type"""
-        if self.content_type == 'video':
-            if not self.video_url:
-                raise ValidationError("Video URL is required for video content")
-            self.blog_content = None  # Clear blog content if switching to video
-        elif self.content_type == 'blog':
-            if not self.blog_content:
-                raise ValidationError("Blog content is required for blog posts")
-            self.video_url = None  # Clear video URL if switching to blog

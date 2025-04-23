@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import AxiosInstance from "./Axiosinstance";
 import "./Education.css";
+import { useNavigate } from "react-router-dom";
 
 const CONTENT_TYPES = {
   VIDEO: "video",
@@ -23,6 +24,7 @@ const Education = () => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -39,9 +41,9 @@ const Education = () => {
     fetchContent();
   }, []);
 
-  const filteredContent = selectedCategory === "all" 
-    ? content 
-    : content.filter(item => item.category === selectedCategory);
+  const filteredContent = selectedCategory === "all"
+  ? content
+  : content.filter(item => item.category === selectedCategory);
 
   const featuredContent = content.filter(item => item.featured);
 
@@ -50,6 +52,10 @@ const Education = () => {
     : activeTab === "videos" 
       ? filteredContent.filter(item => item.content_type === CONTENT_TYPES.VIDEO) 
       : filteredContent.filter(item => item.content_type === CONTENT_TYPES.BLOG);
+
+  const goToDetailPage = (id) => {
+     navigate(`/education/${id}`); // ✅ Redirect to detail page
+  };
 
   const ContentCard = ({ item }) => (
     <div className="content-card">
@@ -80,7 +86,10 @@ const Education = () => {
               <FaClock /> {formatDuration(item.duration)}
             </span>
           )}
-          <button className="action-button">
+          <button 
+            className="action-button"
+            onClick={() => goToDetailPage(item.id)} // ✅ Button navigates
+          >
             {item.content_type === CONTENT_TYPES.VIDEO ? "Watch Now" : "Read Article"}
           </button>
         </div>

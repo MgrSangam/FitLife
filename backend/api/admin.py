@@ -70,18 +70,17 @@ class EducationalContentForm(forms.ModelForm):
 
 @admin.register(EducationalContent)
 class EducationalContentAdmin(admin.ModelAdmin):
-    form = EducationalContentForm
-    list_display = ('title', 'content_type', 'upload_date', 'preview_thumbnail')
-    list_filter = ('content_type',)
+    list_display = ('title', 'content_type', 'category', 'upload_date', 'preview_thumbnail')
+    list_filter = ('content_type', 'category')
     search_fields = ('title', 'description')
     date_hierarchy = 'upload_date'
-    
+
     fieldsets = (
         (None, {
-            'fields': ('title', 'description', 'content_type', 'thumbnail')
+            'fields': ('title', 'description', 'content_type', 'category', 'thumbnail')
         }),
         ('Video Content', {
-            'fields': ('video_url', 'duration'),
+            'fields': ('video_url',),
             'classes': ('video-content',)
         }),
         ('Blog Content', {
@@ -89,6 +88,7 @@ class EducationalContentAdmin(admin.ModelAdmin):
             'classes': ('blog-content',)
         }),
     )
+
     
     class Media:
         js = ('admin/js/content_type_toggle.js',)  # You'll need to create this
