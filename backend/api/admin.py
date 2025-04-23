@@ -46,10 +46,7 @@ class ChallengeParticipantAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'challenge__title')
 
 
-@admin.register(Progress)
-class ProgressAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'progress_date', 'progress_day')
-    search_fields = ('participant__user__username', 'participant__challenge__title')
+
     
     
 

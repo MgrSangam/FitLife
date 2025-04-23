@@ -77,20 +77,26 @@ class ChallengeSerializer(serializers.ModelSerializer):
         ]
 
 
-        
-class ProgressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Progress
-        fields = ['progress_date', 'progress_day', 'participant']
+    
         
 
+
+# serializers.py
+
+from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
+from .models import ChallengeParticipant
 
 class ChallengeParticipantSerializer(serializers.ModelSerializer):
-    progress = ProgressSerializer(many=True, read_only=True)  # Nested progress information
+    # 1) Hide the `user` field—auto-populate it from request.user
+    user = serializers.HiddenField(default=CurrentUserDefault())
+    # 2) Make the join date read-only
+    date_joined = serializers.DateField(read_only=True)
 
     class Meta:
         model = ChallengeParticipant
-        fields = ['participate_id', 'user', 'challenge', 'date_joined', 'progress']
+        fields = ['user', 'challenge', 'date_joined']
+
         
 
 # Add to your existing serializers.py

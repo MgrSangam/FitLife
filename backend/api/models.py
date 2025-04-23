@@ -89,6 +89,8 @@ class Challenge(models.Model):
     def __str__(self):
         return self.title
 
+# models.py (No changes needed here for the model itself, except removing progress-related fields)
+
 class ChallengeParticipant(models.Model):
     participate_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -101,14 +103,6 @@ class ChallengeParticipant(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.challenge.title}"
 
-
-class Progress(models.Model):
-    participant = models.ForeignKey(ChallengeParticipant, on_delete=models.CASCADE)
-    progress_date = models.DateField()
-    progress_day = models.IntegerField()  # Day of the challenge (1, 2, 3, ..., n)
-
-    def __str__(self):
-        return f"Day {self.progress_day} - {self.participant.user.username} - {self.participant.challenge.title}"
 
 
 # Add to your existing models.py

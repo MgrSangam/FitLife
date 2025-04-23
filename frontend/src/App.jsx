@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoutes'
 import Challenge from './components/Challenge'
 import Education from './components/Education'
 import EducationDetail from './components/EducationDetail'
+import ChallengeDetail from './components/ChallengesDetail'
 
 function App() {
   const location = useLocation()
@@ -38,6 +39,7 @@ function App() {
                   <Route path='/challenges' element={<Challenge />} />
                   <Route path='/education' element={<Education/>} />
                   <Route path='/education/:id' element={<EducationDetail/>} />
+                  <Route path='/challenge-detail/:id' element={<ChallengeDetail/>} />
               </Route>
              
               

@@ -103,24 +103,39 @@ class ChallengeView(viewsets.ReadOnlyModelViewSet):
 
 
 # views.py
+# views.py
+
+# views.py
+from rest_framework import viewsets, permissions
+from rest_framework.authentication import SessionAuthentication
+from knox.auth import TokenAuthentication
+from .models import ChallengeParticipant
+from .serializers import ChallengeParticipantSerializer
+
 class ChallengeParticipantViewSet(viewsets.ModelViewSet):
+    """
+    list/retrieve/create ChallengeParticipant.
+    - GET    → list only the current user's participations
+    - POST   → join a new challenge (authenticated users only)
+    """
     serializer_class = ChallengeParticipantSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
-    
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+
+    def get_permissions(self):
+        # Allow any (authenticated or session-auth) to GET, but require auth to POST
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]  # you could swap to IsAuthenticatedOrReadOnly
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
+        # Show only the current user's challenge participations
         return ChallengeParticipant.objects.filter(user=self.request.user)
 
+    def perform_create(self, serializer):
+        # Automatically set `user` to the logged-in user
+        serializer.save(user=self.request.user)
 
-class ProgressViewSet(viewsets.ModelViewSet):
-    queryset = Progress.objects.all()
-    serializer_class = ProgressSerializer
-    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can access
 
-    def get_queryset(self):
-        # Optionally filter by participant (user and challenge)
-        user = self.request.user
-        return Progress.objects.filter(participant__user=user)
     
 
 # Add to your views.py

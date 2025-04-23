@@ -12,13 +12,13 @@ const AxiosInstance = axios.create({
 
 });
 
-AxiosInstance.interceptors.request.use((config) => {
+// AxiosInstance.js
+AxiosInstance.interceptors.request.use(config => {
   const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Token ${token}`;
-  }
+  if (token) config.headers.Authorization = `Token ${token}`;
   return config;
 });
+
 
 
 export default AxiosInstance
