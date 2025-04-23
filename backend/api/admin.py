@@ -106,3 +106,10 @@ class EducationalContentAdmin(admin.ModelAdmin):
                 # Hide video fields
                 fieldsets[1][1]['classes'] += ('hidden',)
         return fieldsets
+    
+
+@admin.register(Goal)
+class GoalsAdmin(admin.ModelAdmin):
+    list_display = ['user', 'goal_type', 'target_weight', 'start_date', 'target_date']
+    search_fields = ['user__email', 'goal_type']
+

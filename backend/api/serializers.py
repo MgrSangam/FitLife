@@ -125,3 +125,71 @@ class EducationalContentSerializer(serializers.ModelSerializer):
         elif content_type == 'blog' and not data.get('blog_content'):
             raise serializers.ValidationError("Blog content is required for blog posts")
         return data
+
+
+
+# goals/serializers.py
+from rest_framework import serializers
+from .models import CustomUser, Goal
+
+class SetupGoalSerializer(serializers.ModelSerializer):
+    age = serializers.IntegerField(write_only=True)
+    height = serializers.FloatField(write_only=True)
+    current_weight = serializers.FloatField(write_only=True)
+
+    class Meta:
+        model = Goal
+        fields = [
+            'goal_type', 'start_date', 'target_date', 'target_weight',
+            'activity_level', 'age', 'height', 'current_weight'
+        ]
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+
+        # Extract age, height, and current_weight from validated_data
+        age = validated_data.pop('age')
+        height = validated_data.pop('height')
+        weight = validated_data.pop('current_weight')
+
+        # Optionally update the user profile with the provided data
+        if user:
+            user.age = age
+            user.height = height
+            user.weight = weight
+            user.save()
+
+        # Ensure that 'user' is not passed in validated_data, since it will be passed separately
+        validated_data.pop('user', None)  # Remove 'user' if it exists
+
+        # Create the goal using the remaining validated data
+        goal = Goal.objects.create(user=user, **validated_data)
+        return goal
+
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        # Extract age, height, and current_weight from validated data
+        age = validated_data.pop('age', None)
+        height = validated_data.pop('height', None)
+        weight = validated_data.pop('current_weight', None)
+
+        # Update user data if present
+        updates = {}
+        if age is not None:
+            updates['age'] = age
+        if height is not None:
+            updates['height'] = height
+        if weight is not None:
+            updates['weight'] = weight
+
+        if updates:
+            # Update user fields in the CustomUser table
+            CustomUser.objects.filter(id=user.id).update(**updates)
+
+        # Update goal fields in the Goal table
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance

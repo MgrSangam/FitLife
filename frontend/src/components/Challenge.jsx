@@ -7,7 +7,7 @@ import {
   FaHeart,
   FaTrophy,
 } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
+import AxiosInstance from "./AxiosInstance";
 import "./Challenge.css";
 import { useNavigate } from "react-router-dom"; 
 
@@ -191,7 +191,6 @@ const Challenge = () => {
                       </span>
                     </div>
                   </div>
-
                   </div>
                 </div>
 
