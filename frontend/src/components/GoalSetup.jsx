@@ -114,7 +114,7 @@ const GoalsPage = () => {
       
       setSuccessMessage("Goal saved successfully!");
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/home");
       }, 2000);
     } catch (err) {
       console.error(err.response?.data || err.message || "Unknown error");

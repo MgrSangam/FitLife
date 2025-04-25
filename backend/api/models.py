@@ -8,7 +8,11 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
 
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
 class CustomUser(AbstractUser):
+    # Keep your existing fields exactly as they are
     email = models.EmailField(max_length=100, unique=True)
     age = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
@@ -21,6 +25,8 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
     
 
 @receiver(reset_password_token_created)
@@ -50,7 +56,10 @@ def passwords_reset_token_created(reset_password_token, *args, **kwargs):
     except Exception as e:
         print(f"Failed to send password reset email: {e}")
         # Consider logging this error properly
-        
+
+
+
+           
 # for challenges
 class Challenge(models.Model):
     DIFFICULTY_CHOICES = [
@@ -203,3 +212,97 @@ class Goal(models.Model):
         """Get age directly from user profile"""
         return self.user.age
    
+
+
+class Exercise(models.Model):
+    MUSCLE_GROUP = [
+        ('fullbody', 'Full Body Exercise'),
+        ('chest', 'Chest Exercise'),
+        ('back', 'Back Exercise'),
+        ('legs', 'Leg Exercise'),
+        ('shoulders', 'Deltoids Exercise'),
+        ('arms', 'Arm Exercise'),  
+        ('core', 'Core Exercise'), 
+    ]
+    
+    DIFFICULTY_LEVEL = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advance', 'Advance'),
+    ]
+    
+    EQUIPMENT_REQUIRED = [
+        ('none', 'No Equppment Needed'),
+        ('dumbells', 'Dumbells'),
+        ('pull_up', 'Pull Up Bar'),
+        ('others', 'Others'),
+    ]
+    name = models.CharField(max_length=40, unique=True)
+    description = models.TextField(max_length=500, null=True, blank=True)
+    image = models.ImageField(upload_to='exercise_thumbnails/', blank=True, null=True)
+    calories_burned = models.FloatField(help_text="Estimated calories burned per minute",null=True,blank=True)
+    
+    muscle_group= models.CharField(
+        max_length=20,
+        default='fullbody',
+        choices= MUSCLE_GROUP
+        
+    )
+    
+    difficulty= models.CharField(
+        max_length=20,
+        default='intermediate',
+        choices= DIFFICULTY_LEVEL
+        
+    )
+    
+    equipment= models.CharField(
+        max_length=20,
+        default='none',
+        choices= EQUIPMENT_REQUIRED
+        
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
+
+
+class Food(models.Model):
+    FOOD_TYPE_CHOICES = [
+    ('fruit', 'Fruit'),
+    ('vegetable', 'Vegetable'),
+    ('grain', 'Grain / Cereal'),
+    ('protein', 'Protein (Meat, Fish, Eggs)'),
+    ('dairy', 'Dairy'),
+    ('fat', 'Fats & Oils'),
+    ('snack', 'Snacks'),
+    ('beverage', 'Beverages'),
+    ('other', 'Other'),
+]
+
+    name = models.CharField(max_length=40, unique=True)
+    image = models.ImageField(upload_to='exercise_thumbnails/', blank=True, null=True)
+    description = models.TextField(max_length=500, null= True, blank= True)
+    carbs = models.FloatField(help_text="Grams of carbs per 100g ",null=True,blank=True)
+    protein = models.FloatField(help_text="Grams of carbs per 100g")
+    fat = models.FloatField(help_text="Grams of carbs per 100g")
+    
+    food_type = models.CharField(
+    max_length=20,
+    choices=FOOD_TYPE_CHOICES,
+    default='other',
+    help_text="Category of the food"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    @property
+    def calories(self):
+        carbs = self.carbs or 0
+        protein = self.protein or 0
+        fat = self.fat or 0
+        return (carbs * 4) + (protein * 4) + (fat * 9)
+    
+    def __str__(self):
+        return self.name

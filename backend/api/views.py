@@ -92,7 +92,7 @@ class LoginView(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
-        
+ # admin.py    
 
 class ChallengeView(viewsets.ReadOnlyModelViewSet):
     queryset = Challenge.objects.all().order_by('-created_at')
@@ -232,3 +232,6 @@ class GoalViewSet(viewsets.ModelViewSet):
 
         # No existing goal: create a new one
         serializer.save(user=user)
+
+
+

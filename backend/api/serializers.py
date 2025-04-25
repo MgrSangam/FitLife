@@ -193,3 +193,68 @@ class SetupGoalSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+from rest_framework import serializers
+from .models import Exercise
+
+class ExerciseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exercise
+        fields = [
+            'id',
+            'name',
+            'description',
+            'image',
+            'calories_burned',
+            'muscle_group',
+            'difficulty',
+            'equipment',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+    
+    def to_representation(self, instance):
+        """
+        Custom representation to show human-readable choice labels
+        """
+        representation = super().to_representation(instance)
+        
+        # Get human-readable labels for choice fields
+        representation['muscle_group'] = dict(Exercise.MUSCLE_GROUP).get(instance.muscle_group)
+        representation['difficulty'] = dict(Exercise.DIFFICULTY_LEVEL).get(instance.difficulty)
+        representation['equipment'] = dict(Exercise.EQUIPMENT_REQUIRED).get(instance.equipment)
+        
+        return representation
+    
+class FoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        fields= [
+            'id',
+            'name',
+            'description',
+            'image',
+            'carbs',
+            'protein',
+            'food_type',
+            'fat',
+            'calories',
+            'created_at'
+        ]
+        
+        read_only_fields = ['id', 'created_at']
+        
+    def get_calories(self, obj):
+        return round(obj.calories, 2)
+    
+    def to_representation(self, instance):
+        """
+        Custom representation to show human-readable choice labels
+        """
+        representation = super().to_representation(instance)
+
+        # Get human-readable labels for choice fields
+        representation['food_type'] = dict(Food.FOOD_TYPE_CHOICES).get(instance.food_type)
+        
+        return representation

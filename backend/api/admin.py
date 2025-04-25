@@ -113,3 +113,40 @@ class GoalsAdmin(admin.ModelAdmin):
     list_display = ['user', 'goal_type', 'target_weight', 'start_date', 'target_date']
     search_fields = ['user__email', 'goal_type']
 
+
+
+@admin.register(Exercise)
+class ExerciseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'muscle_group', 'difficulty', 'equipment', 'created_at')
+    list_filter = ('muscle_group', 'difficulty', 'equipment', 'created_at')
+    search_fields = ('name', 'description')
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at',)
+    
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'image')
+        }),
+        ('Exercise Details', {
+            'fields': ('calories_burned', 'muscle_group', 'difficulty', 'equipment')
+        }),
+        ('Metadata', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+
+@admin.register(Food)
+class FoodAdmin(admin.ModelAdmin):
+    list_display = ('name', 'carbs', 'protein', 'fat', 'calories_per_100g')
+    list_filter = ('food_type',)
+
+    def calories_per_100g(self, obj):
+        return round(obj.calories, 2)
+    calories_per_100g.short_description = 'Calories (per 100g)'
+    
+    def food_type_display(self, obj):
+        return dict(Food.FOOD_TYPE_CHOICES).get(obj.food_type)
+    food_type_display.short_description = 'Food Type'
+
