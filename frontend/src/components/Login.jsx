@@ -74,38 +74,44 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Validate form before submission
+  
     if (!validateForm()) {
       setLoading(false);
       return;
     }
-
+  
     try {
       const response = await AxiosInstance.post("/login/", {
         email: formData.email.trim(),
         password: formData.password
       });
-
+  
       if (response.status === 200 && response.data?.token) {
+        const user = response.data.user || {};
+  
         // Store authentication data
         localStorage.setItem("authToken", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user || {}));
-        
-        // Redirect to home page
-        navigate("/home", { replace: true });
+        localStorage.setItem("user", JSON.stringify(user));
+  
+        // Check if user is instructor (handle string or boolean)
+        const isInstructor = user.is_instructor === true || user.is_instructor === "true";
+  
+        // Redirect based on role
+        if (isInstructor) {
+          navigate("/instructor", { replace: true });
+        } else {
+          navigate("/home", { replace: true });
+        }
       } else {
         throw new Error("Invalid response from server");
       }
     } catch (err) {
-      // Clear auth data on failed login
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
-
+  
       let errorMessage = "Login failed. Please try again.";
-      
+  
       if (err.response) {
-        // Handle different HTTP error statuses
         switch (err.response.status) {
           case 400:
             errorMessage = err.response.data?.error || "Invalid input data";
@@ -127,7 +133,7 @@ const Login = () => {
       } else if (err.message) {
         errorMessage = err.message;
       }
-
+  
       setErrors(prev => ({
         ...prev,
         form: errorMessage
@@ -136,7 +142,8 @@ const Login = () => {
       setLoading(false);
     }
   };
-
+  
+  
   return (
     <div className="login-container">
       <div className="login-card">

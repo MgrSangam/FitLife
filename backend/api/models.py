@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager, AbstractBaseUser, PermissionsMixin, UserManager
 from django.core.exceptions import ValidationError
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.dispatch import receiver
@@ -7,24 +7,40 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
+from django.utils import timezone
+from django.contrib.auth.models import Group, Permission
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
 class CustomUser(AbstractUser):
-    # Keep your existing fields exactly as they are
     email = models.EmailField(max_length=100, unique=True)
     age = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
     profile_picture = models.BinaryField(null=True, blank=True)
     birthday = models.DateField(null=True, blank=True)
+
+    # Instructor-specific fields
+    is_instructor = models.BooleanField(default=False)
+    contact = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    experience = models.CharField(max_length=50, null=True, blank=True)
+    bio = models.CharField(max_length=500, null=True, blank=True)
     
+    SPECIALIZATION_CHOICES = [
+        ('trainer', 'Trainer'),
+        ('nutritionist', 'Nutritionist'),
+    ]
+    specialization = models.CharField(max_length=30, choices=SPECIALIZATION_CHOICES, null=True, blank=True)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.email
+
+
 
 
     
@@ -306,3 +322,89 @@ class Food(models.Model):
     
     def __str__(self):
         return self.name
+    
+    
+    
+    
+    
+class InstructorManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        instructor = self.model(email=email, **extra_fields)
+        instructor.set_password(password)
+        instructor.save(using=self._db)
+        return instructor
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        raise ValueError('Instructors cannot be superusers.')
+
+
+class Instructor(AbstractBaseUser, PermissionsMixin):
+    
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='instructor_groups',
+        blank=True,
+        verbose_name='groups',
+        help_text='The groups this instructor belongs to.',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='instructor_permissions',
+        blank=True,
+        verbose_name='user permissions',
+        help_text='Specific permissions for this instructor.',
+    )
+    SPECIALIZATION_CHOICES = [
+        ('trainer', 'Trainer'),
+        ('nutritionist', 'Nutritionist'),
+    ]
+
+    email = models.EmailField(max_length=100, unique=True)
+    
+    first_name = models.CharField(max_length=30, null=True, blank=True)
+    last_name = models.CharField(max_length=30, null=True, blank=True)
+    username = models.CharField(max_length=30, null=True, blank=True)
+    contact = models.CharField(max_length=15, unique=True)
+    experience_years = models.PositiveIntegerField(null=True, blank=True)
+    bio = models.TextField(max_length=500, null=True, blank=True)
+    profile_picture = models.BinaryField(null=True, blank=True)
+    specialization = models.CharField(max_length=30, choices=SPECIALIZATION_CHOICES)
+
+  
+    # Auth-related fields
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)  # Instructors won't be staff
+    is_superuser = models.BooleanField(default=False)  # Instructors cannot be superusers
+    date_joined = models.DateTimeField(default=timezone.now)
+
+    objects = InstructorManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []  # or ['first_name', 'last_name'] if you want
+
+    def __str__(self):
+        return self.email
+
+
+from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+class AuthToken(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    user = GenericForeignKey('content_type', 'object_id')
+    key = models.CharField(max_length=40, primary_key=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super().save(*args, **kwargs)
+
+    def generate_key(self):
+        import secrets
+        return secrets.token_hex(20)

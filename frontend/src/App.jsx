@@ -13,6 +13,7 @@ import Education from './components/Education'
 import EducationDetail from './components/EducationDetail'
 import ChallengeDetail from './components/ChallengesDetail'
 import GoalsPage from './components/GoalSetup'
+import Instructor from './components/Instructor'
 
 function App() {
   const location = useLocation()
@@ -27,6 +28,7 @@ function App() {
          <Route path='/register' element={<Register />} />
          <Route path='/reset' element={< PasswordResetRequest/>} />
          <Route path='/password-reset' element={< PasswordReset/>} />
+         
 
       </Routes>
 
@@ -42,6 +44,7 @@ function App() {
                   <Route path='/education/:id' element={<EducationDetail/>} />
                   <Route path='/challenge-detail/:id' element={<ChallengeDetail/>} />
                   <Route path='/goals' element={<GoalsPage/>} />
+                  <Route path='/instructor' element={<Instructor/>} />
               </Route>
              
               

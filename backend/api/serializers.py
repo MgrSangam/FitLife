@@ -7,6 +7,11 @@ from django.contrib.auth.password_validation import validate_password
 
 User = get_user_model()
 
+from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from .models import CustomUser  # assuming the model is CustomUser and imported properly
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
@@ -16,7 +21,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = (
             'id',
             'username',
@@ -24,13 +29,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             'password',
             'password2',
             'first_name',
-            'last_name'
+            'last_name',
         )
         extra_kwargs = {
             'password': {'write_only': True},
-            'first_name': {'required':False },
-            'last_name': {'required':False}
-            
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'username': {'required': True},
+            'email': {'required': True},
         }
 
     def validate(self, attrs):
@@ -41,27 +47,44 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        # Remove password2 from validated_data
         validated_data.pop('password2')
-        
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-            first_name = validated_data['first_name'],
-            last_name = validated_data['last_name']
-        )
+        password = validated_data.pop('password')
+
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
         return user
-    
+
+
+
+from django.contrib.auth import authenticate
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
     
+    def validate(self, data):
+        user = authenticate(email=data['email'], password=data['password'])
+        if user is None:
+            raise serializers.ValidationError("Invalid credentials")
+        if not user.is_active:
+            raise serializers.ValidationError("User account is disabled")
+        data['user'] = user
+        return data
+
     def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret.pop('password', None)
-        return ret
+        user = self.validated_data.get('user')
+        return {
+            "email": user.email,
+            "username": user.username,
+            "is_instructor": user.is_instructor
+        }
+
+
     
 class ChallengeSerializer(serializers.ModelSerializer):
     image_url = serializers.ImageField(source='image', read_only=True)

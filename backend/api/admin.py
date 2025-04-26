@@ -8,7 +8,42 @@ from django import forms
 
 
 # Register your CustomUser with a custom admin interface
-admin.site.register(CustomUser, UserAdmin)
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser
+
+class CustomUserAdmin(UserAdmin):
+    model = CustomUser
+    list_display = ['email', 'username', 'first_name', 'last_name', 'is_instructor', 'contact', 'specialization']
+    search_fields = ['email', 'username']
+    ordering = ['email']
+
+    # Specify which fields to display in the form
+    fieldsets = (
+        (None, {'fields': ('email', 'username', 'password')}),  # Default fields
+        ('Personal info', {'fields': ('first_name', 'last_name')}),  # Personal info
+        ('Instructor info', {'fields': ('is_instructor', 'contact', 'experience', 'bio', 'specialization')}),  # Instructor info
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),  # Permissions
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),  # Important dates
+    )
+
+    # Add these fields for adding new users
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'username', 'password1', 'password2', 'first_name', 'last_name'),
+        }),
+    )
+
+    filter_horizontal = ('groups', 'user_permissions')
+
+    class Media:
+        js = ('admin/js/instructor_toggle.js',)  # Custom JS to toggle visibility of instructor fields
+
+admin.site.register(CustomUser, CustomUserAdmin)
+
+
+
 
 @admin.register(Challenge)
 class ChallengeAdmin(admin.ModelAdmin):
@@ -149,4 +184,8 @@ class FoodAdmin(admin.ModelAdmin):
     def food_type_display(self, obj):
         return dict(Food.FOOD_TYPE_CHOICES).get(obj.food_type)
     food_type_display.short_description = 'Food Type'
+
+
+
+
 

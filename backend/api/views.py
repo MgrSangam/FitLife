@@ -15,27 +15,27 @@ from knox.auth import TokenAuthentication
 User = get_user_model()
 # Create your views here.
 
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from .serializers import RegisterSerializer
+
+User = get_user_model()
+
 class RegisterView(viewsets.ViewSet):
-  permission_classes = [permissions.AllowAny]
-  queryset = User.objects.all()
-  serializer_class = RegisterSerializer
-  @transaction.atomic
-  def create(self, request):
-        print("Incoming data:", request.data)  # Debug what's being received
-        serializer = self.serializer_class(data=request.data)
-        
+    permission_classes = [permissions.AllowAny]
+
+    @transaction.atomic
+    def create(self, request):
+        print("Incoming data:", request.data)
+        serializer = RegisterSerializer(data=request.data)
+
         if serializer.is_valid():
-            print("Valid data:", serializer.validated_data)  # Debug validated data
+            print("Valid data:", serializer.validated_data)
             user = serializer.save()
-            print("User created:", user.id, user.email)  # Confirm creation
-            
-            # Verify the user exists in DB
-            try:
-                db_user = User.objects.get(id=user.id)
-                print("User in DB:", db_user.email)
-            except User.DoesNotExist:
-                print("ERROR: User not found in database!")
-            
+            print("User created:", user.id, user.email)
+
             response_data = {
                 'id': user.id,
                 'username': user.username,
@@ -43,54 +43,66 @@ class RegisterView(viewsets.ViewSet):
                 'message': 'User registered successfully'
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
-        
-        print("Validation errors:", serializer.errors)  # Debug errors
+
+        print("Validation errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+
+
+
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from knox.models import AuthToken
+from django.contrib.auth import authenticate
+from .serializers import LoginSerializer
 
 class LoginView(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
-    
+
     def create(self, request):
-        # Step 1: Validate input data
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
             return Response(
                 {"error": "Invalid input", "details": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Step 2: Extract validated data
+
         email = serializer.validated_data.get('email')
         password = serializer.validated_data.get('password')
-        
-        # Step 3: Authenticate user
+
         user = authenticate(request, email=email, password=password)
-        
+
         if not user:
             return Response(
                 {"error": "Invalid credentials - email or password incorrect"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
-        # Step 4: Only create token for authenticated users
+
         try:
+            # Create the token
             _, token = AuthToken.objects.create(user)
+            
+            # Include 'is_instructor' in the response
             return Response({
                 "user": {
                     "id": user.id,
                     "email": user.email,
-                    "username": user.username
+                    "username": user.username,
+                    "is_instructor": bool(user.is_instructor)  # Add is_instructor
                 },
                 "token": token
             }, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             return Response(
                 {"error": "Could not create authentication token"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
         
  # admin.py    
 
