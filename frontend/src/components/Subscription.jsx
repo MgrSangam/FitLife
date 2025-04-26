@@ -8,12 +8,15 @@ const Subscription = () => {
   const handleSubscription = async (plan) => {
     try {
       const response = await axiosInstance.post("/subscriptions/", { plan });
-      // Redirect to payment page (mock for now)
-      window.location.href = "/payment"; 
+      if (response.status === 201) {
+        // Handle successful subscription
+        window.location.href = "/payment";
+      }
     } catch (error) {
       console.error("Subscription failed:", error);
       alert("Failed to start subscription. Please try again!");
     }
+    
   };
 
   return (
@@ -37,7 +40,7 @@ const Subscription = () => {
               className="action-button basic-button"
               onClick={() => handleSubscription("basic")}
             >
-              Start Free
+              Active
             </button>
           </div>
 

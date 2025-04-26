@@ -103,6 +103,7 @@ WSGI_APPLICATION = 'fitlife.wsgi.application'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'knox.auth.TokenAuthentication',  # Use Knox specifically
+        'rest_framework.authentication.TokenAuthentication',
     ),
     
 }

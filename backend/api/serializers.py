@@ -285,8 +285,14 @@ class FoodSerializer(serializers.ModelSerializer):
     
     
     
+from rest_framework import serializers
+
+
 class SubscriptionSerializer(serializers.ModelSerializer):
+    plan = serializers.CharField(write_only=True)
+
     class Meta:
-        model = Subscription
-        fields = ['id', 'user', 'plan', 'is_active', 'start_date', 'end_date']
-        read_only_fields = ['start_date', 'end_date', 'is_active']
+        model = SubscriptionPlan
+        fields = ['id', 'user', 'plan', 'is_active', 'start_date', 'end_date', 'trainer', 'nutritionist']
+        read_only_fields = ['is_active', 'start_date', 'end_date', 'trainer', 'nutritionist', 'user']
+

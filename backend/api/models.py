@@ -326,24 +326,47 @@ class Food(models.Model):
     
     
     
-from datetime import timedelta
+from datetime import timedelta, date
+from django.conf import settings
+from django.db import models
 
-class Subscription(models.Model):
+class SubscriptionPlan(models.Model):
     PLAN_CHOICES = (
         ('basic', 'Basic'),
         ('premium', 'Premium'),
     )
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscription')
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES)
     is_active = models.BooleanField(default=False)
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True, blank=True)
 
+    trainer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'is_instructor': True, 'specialization': 'trainer'},
+        related_name='trainer_subscriptions'
+    )
+
+    nutritionist = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'is_instructor': True, 'specialization': 'nutritionist'},
+        related_name='nutritionist_subscriptions'
+    )
+
     def save(self, *args, **kwargs):
-        if not self.end_date:
-            self.end_date = self.start_date + timedelta(days=30)
+        if not self.start_date:
+            self.start_date = timezone.now().date()
+        self.end_date = self.start_date + timedelta(days=30)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.email} - {self.plan}"
+
 

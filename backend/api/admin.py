@@ -18,29 +18,29 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ['email', 'username']
     ordering = ['email']
 
-    # Specify which fields to display in the form
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'password')}),  # Default fields
-        ('Personal info', {'fields': ('first_name', 'last_name')}),  # Personal info
-        ('Instructor info', {'fields': ('is_instructor', 'contact', 'experience', 'bio', 'specialization')}),  # Instructor info
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),  # Permissions
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),  # Important dates
+        (None, {'fields': ('email', 'username', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Instructor info', {'fields': ('is_instructor', 'contact', 'experience', 'bio', 'specialization')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
-    # Add these fields for adding new users
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'password1', 'password2', 'first_name', 'last_name'),
+            'fields': (
+                'email', 'username', 'password1', 'password2',
+                'first_name', 'last_name',
+                'is_instructor', 'contact', 'experience', 'bio', 'specialization',
+            ),
         }),
     )
 
     filter_horizontal = ('groups', 'user_permissions')
 
-    class Media:
-        js = ('admin/js/instructor_toggle.js',)  # Custom JS to toggle visibility of instructor fields
-
 admin.site.register(CustomUser, CustomUserAdmin)
+
 
 
 
@@ -190,22 +190,16 @@ class FoodAdmin(admin.ModelAdmin):
 
 
 from django.contrib import admin
-from .models import Subscription
+from .models import SubscriptionPlan
 
-@admin.register(Subscription)
+@admin.register(SubscriptionPlan)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'plan', 'is_active', 'start_date', 'end_date')
-    list_filter = ('plan', 'is_active', 'start_date')
-    search_fields = ('user__email', 'plan')
-    ordering = ('-start_date',)
-    readonly_fields = ('start_date', 'end_date')
+    list_display = ('user', 'plan', 'is_active', 'start_date', 'end_date', 'trainer', 'nutritionist')
+    list_filter = ('plan', 'is_active')
+    search_fields = ('user__email', 'trainer__email', 'nutritionist__email')
+    readonly_fields = ('start_date', 'end_date', 'trainer', 'nutritionist')
 
-    fieldsets = (
-        (None, {
-            'fields': ('user', 'plan', 'is_active')
-        }),
-        ('Dates', {
-            'fields': ('start_date', 'end_date'),
-            'classes': ('collapse',),
-        }),
-    )
+    def save_model(self, request, obj, form, change):
+        # Custom logic to handle saving the subscription, if needed
+        super().save_model(request, obj, form, change)
+

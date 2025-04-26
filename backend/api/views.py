@@ -246,17 +246,86 @@ class GoalViewSet(viewsets.ModelViewSet):
         serializer.save(user=user)
 
 
+from rest_framework import serializers, viewsets, permissions
+from .models import SubscriptionPlan
+from rest_framework.exceptions import ValidationError
+from random import choice
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
-    queryset = Subscription.objects.all()
+    """
+    Subscription Viewset for handling user subscriptions.
+    - GET    → list the user's subscription
+    - POST   → subscribe to a new plan (authenticated users only)
+    """
+    queryset = SubscriptionPlan.objects.all()
     serializer_class = SubscriptionSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return Subscription.objects.filter(user=self.request.user)
-
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, is_active=True)
+        user = self.request.user
+        plan = self.request.data.get('plan')
+
+        if not plan:
+            raise ValidationError("Plan is required.")
+
+        payment_successful = True
+        if not payment_successful:
+            raise ValidationError("Payment not successful.")
+
+        try:
+            subscription = SubscriptionPlan.objects.get(user=user)
+            subscription.plan = plan
+            subscription.is_active = True
+            subscription.start_date = timezone.now()
+            subscription.end_date = timezone.now() + timedelta(days=30)
+
+            if plan == 'premium':
+                trainers = User.objects.filter(is_instructor=True, specialization='trainer')
+                nutritionists = User.objects.filter(is_instructor=True, specialization='nutritionist')
+
+            if trainers.exists():
+                trainer = choice(trainers)
+                subscription.trainer = trainer
+
+            if nutritionists.exists():
+                nutritionist = choice(nutritionists)
+                subscription.nutritionist = nutritionist
+            else:
+                subscription.trainer = None
+                subscription.nutritionist = None
+
+            subscription.save()
+
+        except SubscriptionPlan.DoesNotExist:
+            subscription = serializer.save(user=user, is_active=True)
+
+            if plan == 'premium':
+                trainers = User.objects.filter(is_instructor=True, specialization='trainer')
+                nutritionists = User.objects.filter(is_instructor=True, specialization='nutritionist')
+
+            if trainers.exists():
+                trainer = choice(trainers)
+                subscription.trainer = trainer
+
+            if nutritionists.exists():
+                nutritionist = choice(nutritionists)
+                subscription.nutritionist = nutritionist
+            else:
+                subscription.trainer = None
+                subscription.nutritionist = None
+
+            subscription.save()
+
+        return subscription
+
+
+
+
+
         
         
 
