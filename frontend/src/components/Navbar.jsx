@@ -5,6 +5,7 @@ import {
   FaCaretDown, FaSignOutAlt, FaCog,
   FaHistory, FaChartLine, FaTrophy
 } from "react-icons/fa";
+import { MdSubscriptions } from "react-icons/md";
 import "./Navbar.css";
 
 export default function Navbar({ content }) {
@@ -48,6 +49,7 @@ export default function Navbar({ content }) {
             <NavLink to="/" icon={<FaHome />} text="Home" current={pathname} />
             <NavLink to="/education" icon={<FaBookOpen />} text="Education" current={pathname} />
             <NavLink to="/challenges" icon={<FaTrophy />} text="Challenges" current={pathname} />
+            <NavLink to="/subscriptions" icon={<MdSubscriptions />} text="Subscription" current={pathname} />
           </nav>
 
           <div className="navbar-auth">

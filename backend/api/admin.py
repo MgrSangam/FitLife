@@ -189,3 +189,23 @@ class FoodAdmin(admin.ModelAdmin):
 
 
 
+from django.contrib import admin
+from .models import Subscription
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'plan', 'is_active', 'start_date', 'end_date')
+    list_filter = ('plan', 'is_active', 'start_date')
+    search_fields = ('user__email', 'plan')
+    ordering = ('-start_date',)
+    readonly_fields = ('start_date', 'end_date')
+
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'plan', 'is_active')
+        }),
+        ('Dates', {
+            'fields': ('start_date', 'end_date'),
+            'classes': ('collapse',),
+        }),
+    )

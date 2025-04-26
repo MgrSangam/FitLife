@@ -281,3 +281,12 @@ class FoodSerializer(serializers.ModelSerializer):
         representation['food_type'] = dict(Food.FOOD_TYPE_CHOICES).get(instance.food_type)
         
         return representation
+    
+    
+    
+    
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ['id', 'user', 'plan', 'is_active', 'start_date', 'end_date']
+        read_only_fields = ['start_date', 'end_date', 'is_active']

@@ -14,6 +14,7 @@ import EducationDetail from './components/EducationDetail'
 import ChallengeDetail from './components/ChallengesDetail'
 import GoalsPage from './components/GoalSetup'
 import Instructor from './components/Instructor'
+import Subscription from './components/Subscription'
 
 function App() {
   const location = useLocation()
@@ -45,6 +46,7 @@ function App() {
                   <Route path='/challenge-detail/:id' element={<ChallengeDetail/>} />
                   <Route path='/goals' element={<GoalsPage/>} />
                   <Route path='/instructor' element={<Instructor/>} />
+                  <Route path='/subscriptions' element={<Subscription/>} />
               </Route>
              
               
