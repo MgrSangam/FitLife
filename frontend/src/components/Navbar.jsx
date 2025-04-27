@@ -14,12 +14,15 @@ export default function Navbar({ content }) {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [plansDropdownOpen, setPlansDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isInstructor, setIsInstructor] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("authToken");
     if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      setIsInstructor(parsedUser?.is_instructor || false);
     }
   }, []);
 
@@ -27,6 +30,7 @@ export default function Navbar({ content }) {
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
     setUser(null);
+    setIsInstructor(false);
     navigate("/");
   };
 
@@ -48,25 +52,15 @@ export default function Navbar({ content }) {
     { 
       icon: <FaClipboardList />, 
       text: "Fitness Plan", 
-      path: "/fitnessplan",
-      onClick: (e) => {
-        e.preventDefault();
-        navigate("/fitnessplan");
-        setPlansDropdownOpen(false);
-      }
+      path: "/fitnessplan"
     },
     { 
       icon: <FaUtensils />, 
       text: "Meals Plan", 
-      path: "/mealsplan",
-      onClick: (e) => {
-        e.preventDefault();
-        navigate("/mealsplan");
-        setPlansDropdownOpen(false);
-      }
+      path: "/mealsplan"
     }
   ];
-  // Close dropdowns when clicking outside
+
   useEffect(() => {
     const handleClickOutside = () => {
       setPlansDropdownOpen(false);
@@ -80,42 +74,53 @@ export default function Navbar({ content }) {
     <>
       <header className="navbar-header">
         <div className="navbar-container">
-          <Link to="/home" className="navbar-brand">
+          <Link to={isInstructor ? "/instructor" : "/home"} className="navbar-brand">
             <FaDumbbell /> <span>FitLife</span>
           </Link>
 
           <nav className="navbar-links">
-            <NavLink to="/home" icon={<FaHome />} text="Home" current={pathname} />
+            <NavLink 
+              to={isInstructor ? "/instructor" : "/home"} 
+              icon={<FaHome />} 
+              text="Home" 
+              current={pathname} 
+            />
             
-            {/* Plans Dropdown */}
-            <div className="navbar-dropdown">
-              <button 
-                className={`navbar-link ${plansItems.some(item => pathname === item.path) ? 'active' : ''}`}
-                onClick={togglePlansDropdown}
-              >
-                <FaClipboardList /> 
-                <span>Plans</span> 
-                <FaCaretDown className={`dropdown-caret ${plansDropdownOpen ? 'open' : ''}`} />
-              </button>
-              {plansDropdownOpen && (
-  <div className="dropdown-menu plans-menu show">
-    {plansItems.map((item, i) => (
-      <a
-        key={i}
-        href={item.path}
-        className={`dropdown-item ${pathname === item.path ? 'active' : ''}`}
-        onClick={item.onClick}
-      >
-        {item.icon} <span>{item.text}</span>
-      </a>
-    ))}
-  </div>
-)}
-            </div>
+            {/* Plans Dropdown - Hidden for instructors */}
+            {!isInstructor && plansItems.length > 0 && (
+              <div className="navbar-dropdown">
+                <button 
+                  className={`navbar-link ${plansItems.some(item => pathname === item.path) ? 'active' : ''}`}
+                  onClick={togglePlansDropdown}
+                >
+                  <FaClipboardList /> 
+                  <span>Plans</span> 
+                  <FaCaretDown className={`dropdown-caret ${plansDropdownOpen ? 'open' : ''}`} />
+                </button>
+                {plansDropdownOpen && (
+                  <div className="dropdown-menu plans-menu show">
+                    {plansItems.map((item, i) => (
+                      <Link
+                        key={i}
+                        to={item.path}
+                        className={`dropdown-item ${pathname === item.path ? 'active' : ''}`}
+                        onClick={() => setPlansDropdownOpen(false)}
+                      >
+                        {item.icon} <span>{item.text}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             
             <NavLink to="/education" icon={<FaBookOpen />} text="Education" current={pathname} />
             <NavLink to="/challenges" icon={<FaTrophy />} text="Challenges" current={pathname} />
-            <NavLink to="/subscriptions" icon={<MdSubscriptions />} text="Subscription" current={pathname} />
+            
+            {/* Hide Subscription for instructors */}
+            {!isInstructor && (
+              <NavLink to="/subscriptions" icon={<MdSubscriptions />} text="Subscription" current={pathname} />
+            )}
           </nav>
 
           <div className="navbar-auth">

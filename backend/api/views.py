@@ -415,3 +415,51 @@ class MealFoodViewSet(
         if meal_time:
             queryset = queryset.filter(meal_time=meal_time)
         return queryset
+    
+    
+
+
+
+# serializers.py
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from django.db.models import Count, Q
+from django.contrib.auth import get_user_model
+from .serializers import InstructorProfileSerializer
+
+User = get_user_model()
+
+class InstructorProfileViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = InstructorProfileSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if not self.request.user.is_instructor:
+            return User.objects.none()
+        
+        return User.objects.filter(
+            pk=self.request.user.pk
+        ).annotate(
+            assigned_clients_count=Count(
+                'trainer_subscriptions',
+                filter=Q(trainer_subscriptions__is_active=True)
+            ) + Count(
+                'nutritionist_subscriptions',
+                filter=Q(nutritionist_subscriptions__is_active=True)
+            )
+        )
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        if not queryset.exists():
+            return Response(
+                {"error": "No instructor profile found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+            
+        instance = queryset.first()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

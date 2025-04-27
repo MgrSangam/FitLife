@@ -430,3 +430,48 @@ class MealPlanSerializer(serializers.ModelSerializer):
         if obj.image:
             return self.context['request'].build_absolute_uri(obj.image.url)
         return None
+    
+    
+    
+
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from .models import SubscriptionPlan
+
+User = get_user_model()
+
+class InstructorProfileSerializer(serializers.ModelSerializer):
+    assigned_clients_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'age',
+            'birthday',
+            'contact',
+            'experience',
+            'bio',
+            'specialization',
+            'is_instructor',
+            'assigned_clients_count'
+        ]
+    
+    def get_assigned_clients_count(self, obj):
+        # Count clients assigned through trainer relationship
+        trainer_count = SubscriptionPlan.objects.filter(
+            trainer=obj,
+            is_active=True
+        ).count()
+        
+        # Count clients assigned through nutritionist relationship
+        nutritionist_count = SubscriptionPlan.objects.filter(
+            nutritionist=obj,
+            is_active=True
+        ).count()
+        
+        return trainer_count + nutritionist_count

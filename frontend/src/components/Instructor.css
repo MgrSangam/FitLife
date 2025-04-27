@@ -1,0 +1,210 @@
+/* Instructor Dashboard Styles */
+
+/* Container and Layout */
+.instructor-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Profile Section */
+.profile-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .profile-section {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-icon {
+  font-size: 1.5rem;
+  color: #7c3aed; /* Purple-600 */
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1f2937; /* Gray-800 */
+}
+
+.card-subtitle {
+  color: #6b7280; /* Gray-500 */
+  text-transform: capitalize;
+}
+
+/* Stats Section */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  color: #7c3aed; /* Purple-600 */
+  font-size: 1.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280; /* Gray-500 */
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937; /* Gray-800 */
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  transform: translateY(-1px);
+}
+
+.action-button.purple {
+  background-color: #7c3aed;
+  color: white;
+}
+
+.action-button.purple:hover {
+  background-color: #6d28d9;
+}
+
+.action-button.green {
+  background-color: #10b981;
+  color: white;
+}
+
+.action-button.green:hover {
+  background-color: #059669;
+}
+
+/* Clients Section */
+.clients-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .clients-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .clients-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.client-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.client-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.client-name {
+  font-weight: 600;
+  color: #1f2937; /* Gray-800 */
+}
+
+.client-email {
+  font-size: 0.875rem;
+  color: #6b7280; /* Gray-500 */
+}
+
+.client-age {
+  font-size: 0.875rem;
+  color: #4b5563; /* Gray-600 */
+  margin-top: 0.25rem;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid rgba(124, 58, 237, 0.1);
+  border-radius: 50%;
+  border-top-color: #7c3aed;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error Message */
+.error-message {
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 2rem auto;
+  max-width: 600px;
+}

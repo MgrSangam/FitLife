@@ -11,7 +11,8 @@ from .views import (
     FitnessPlanViewSet,
     FitnessPlanExerciseViewSet,
     MealPlanViewSet,
-    MealFoodViewSet
+    MealFoodViewSet,
+    InstructorProfileViewSet
 )
 
 router = DefaultRouter()
@@ -24,7 +25,7 @@ router.register(r'api/challenge-participants', ChallengeParticipantViewSet, base
 router.register('education', EducationalContentViewSet, basename='education')
 router.register(r'api/goals', GoalViewSet, basename='goals')
 router.register(r'subscriptions', SubscriptionViewSet, basename='subscription')
-
+router.register(r'instructor', InstructorProfileViewSet, basename='instructor')
 # New fitness plan routes
 router.register(r'api/fitness-plans', FitnessPlanViewSet, basename='fitness-plans')
 router.register(r'api/fitness-plan-exercises', FitnessPlanExerciseViewSet, basename='fitness-plan-exercises')
