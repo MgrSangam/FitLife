@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AxiosInstance from "./AxiosInstance";
+import AxiosInstance from "./Axiosinstance";
 import {
   FaCalendarAlt,
   FaWeight,

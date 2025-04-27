@@ -7,7 +7,7 @@ import {
   FaHeart,
   FaTrophy,
 } from "react-icons/fa";
-import AxiosInstance from "./AxiosInstance";
+import AxiosInstance from "./Axiosinstance";
 import "./Challenge.css";
 import { useNavigate } from "react-router-dom"; 
 

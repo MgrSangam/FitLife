@@ -71,6 +71,86 @@
   border-bottom: 2px solid #7c3aed;
 }
 
+/* ===== Plans Dropdown ===== */
+.navbar-dropdown {
+  position: relative;
+}
+
+.navbar-dropdown > button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4b5563;
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+  cursor: pointer;
+}
+
+.navbar-dropdown > button:hover {
+  color: #7c3aed;
+}
+
+.navbar-dropdown > button svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.navbar-dropdown > button svg[data-icon="caret-down"] {
+  margin-left: 0.25rem;
+  transition: transform 0.2s ease;
+}
+
+.navbar-dropdown > button svg.open {
+  transform: rotate(180deg);
+}
+
+.plans-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 200px;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  border: 1px solid #e5e7eb;
+  opacity: 0;
+  transform: translateY(-10px);
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.navbar-dropdown:hover .plans-menu,
+.plans-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.plans-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: #4b5563;
+  transition: background 0.2s ease;
+}
+
+.plans-menu .dropdown-item:hover {
+  background-color: #f9fafb;
+  color: #7c3aed;
+}
+
+.plans-menu .dropdown-item svg {
+  width: 1rem;
+  height: 1rem;
+  color: #6b7280;
+}
+
 /* ===== Auth Section ===== */
 .navbar-auth {
   display: flex;
@@ -206,14 +286,14 @@
 .dropdown-menu button.logout svg {
   color: #ef4444;
 }
-/* Add to Navbar.css */
+
+/* Content container */
 .content-container {
   margin-top: 4rem; /* Same as navbar height */
   padding: 1.5rem;
   min-height: calc(100vh - 4rem); /* Full height minus navbar */
 }
 
-/* Rest of your existing navbar styles... */
 /* ===== Mobile Responsiveness ===== */
 @media (max-width: 768px) {
   .navbar-links {

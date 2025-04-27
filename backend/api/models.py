@@ -372,32 +372,53 @@ class SubscriptionPlan(models.Model):
 
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator
+from django.db import models
 
 class FitnessPlan(models.Model):
     PLAN_TYPE = [
         ('weight_loss', 'Weight Loss'),
         ('muscle_gain', 'Muscle Gain'),
         ('endurance', 'Endurance Training'),
-        ('maintain', 'Mantain Weight'),
-
+        ('maintain', 'Maintain Weight'),
     ]
-    
+
+    DIFFICULTY_LEVELS = [
+        ("sedentary", "Very Easy (Sedentary: little to no exercise)"),
+        ("light", "Easy (Light: 1-3 times/week)"),
+        ("moderate", "Normal (Moderate: 3-5 times/week)"),
+        ("active", "Hard (Active: 6-7 times/week)"),
+        ("very_active", "Very Hard (Very Active: 2x/day)"),
+    ]
+
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=500, null=True, blank=True)
     plan_type = models.CharField(
         max_length=20,
         choices=PLAN_TYPE,
-        default='general'
+        default='weight_loss'
     )
     duration_weeks = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
         help_text="Duration in weeks"
+    )
+    difficulty = models.CharField(
+        max_length=20,
+        choices=DIFFICULTY_LEVELS,
+        default='moderate'
+    )
+    picture = models.ImageField(
+        upload_to='fitness_plans/',
+        null=True,
+        blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.name
+
+
 
 class FitnessPlanExercise(models.Model):
     DAYS_OF_WEEK = [
@@ -454,6 +475,9 @@ class FitnessPlanExercise(models.Model):
 from django.db import models
 from django.core.validators import MinValueValidator
 
+from django.db import models
+from django.core.validators import MinValueValidator
+
 class MealPlan(models.Model):
     MEAL_PLAN_TYPE = [
         ('weight_loss', 'Weight Loss'),
@@ -478,11 +502,19 @@ class MealPlan(models.Model):
         validators=[MinValueValidator(1)],
         help_text="Duration in weeks"
     )
+    image = models.ImageField(
+        upload_to='meal_plans/',
+        null=True,
+        blank=True,
+        help_text="Image representing the meal plan"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.name
+
+
 
 class MealFood(models.Model):
     MEAL_TIME_CHOICES = [

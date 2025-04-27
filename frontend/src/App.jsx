@@ -15,6 +15,10 @@ import ChallengeDetail from './components/ChallengesDetail'
 import GoalsPage from './components/GoalSetup'
 import Instructor from './components/Instructor'
 import Subscription from './components/Subscription'
+import FitnessPlan from './components/FitnessPlan'
+import MealPlan from './components/MealPlan'
+import FitnessPlanDetail from './components/FitnessDescription'
+import MealPlanDetail from './components/MealPlanDetails'
 
 function App() {
   const location = useLocation()
@@ -47,6 +51,10 @@ function App() {
                   <Route path='/goals' element={<GoalsPage/>} />
                   <Route path='/instructor' element={<Instructor/>} />
                   <Route path='/subscriptions' element={<Subscription/>} />
+                  <Route path='/fitnessplan' element={<FitnessPlan/>} />
+                  <Route path='/mealsplan' element={<MealPlan/>} />
+                  <Route path='/fitnessplan-detail/:id' element={<FitnessPlanDetail/>} />
+                  <Route path='/mealplan-detail/:id' element={<MealPlanDetail/>} />
               </Route>
              
               

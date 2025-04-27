@@ -205,6 +205,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import FitnessPlan, FitnessPlanExercise
 
 class FitnessPlanExerciseInline(admin.TabularInline):
@@ -215,21 +216,31 @@ class FitnessPlanExerciseInline(admin.TabularInline):
 
 @admin.register(FitnessPlan)
 class FitnessPlanAdmin(admin.ModelAdmin):
-    list_display = ['name', 'plan_type', 'duration_weeks', 'created_at']
-    list_filter = ['plan_type', 'created_at']
+    list_display = ['name', 'plan_type', 'difficulty', 'duration_weeks', 'created_at','picture_preview']
+    list_filter = ['plan_type', 'difficulty', 'created_at']
     search_fields = ['name', 'description']
     inlines = [FitnessPlanExerciseInline]
     
     fieldsets = (
         (None, {
-            'fields': ('name', 'description', 'plan_type', 'duration_weeks')
+            'fields': ('name', 'description', 'plan_type', 'difficulty', 'duration_weeks', 'picture', 'picture_preview')  # added picture_preview
         }),
         ('Metadata', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'picture_preview']  # added picture_preview here
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related()
+    
+    def picture_preview(self, obj):
+        if obj.picture:
+            return format_html('<img src="{}" width="200" style="object-fit: cover;"/>', obj.picture.url)
+        return "(No picture)"
+    picture_preview.short_description = "Picture Preview"
 
 @admin.register(FitnessPlanExercise)
 class FitnessPlanExerciseAdmin(admin.ModelAdmin):
@@ -240,8 +251,7 @@ class FitnessPlanExerciseAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('fitness_plan', 'exercise')
-    
-    
+
     
 
 from django.contrib import admin
@@ -256,21 +266,27 @@ class MealFoodInline(admin.TabularInline):
 
 @admin.register(MealPlan)
 class MealPlanAdmin(admin.ModelAdmin):
-    list_display = ['name', 'plan_type', 'daily_calorie_target', 'duration_weeks']
+    list_display = ['name', 'plan_type', 'daily_calorie_target', 'duration_weeks', 'image_preview']
     list_filter = ['plan_type', 'created_at']
     search_fields = ['name', 'description']
     inlines = [MealFoodInline]
+    readonly_fields = ['created_at', 'updated_at', 'image_preview']
     
     fieldsets = (
         (None, {
-            'fields': ('name', 'description', 'plan_type', 'daily_calorie_target', 'duration_weeks')
+            'fields': ('name', 'description', 'plan_type', 'daily_calorie_target', 'duration_weeks', 'image')
         }),
         ('Metadata', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
-    readonly_fields = ['created_at', 'updated_at']
+    
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" width="50" height="50" />'.format(obj.image.url))
+        return "No Image"
+    image_preview.short_description = 'Preview'
 
 @admin.register(MealFood)
 class MealFoodAdmin(admin.ModelAdmin):

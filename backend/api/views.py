@@ -330,16 +330,25 @@ from .models import FitnessPlan, FitnessPlanExercise
 from .serializers import FitnessPlanSerializer, FitnessPlanExerciseSerializer
 
 class FitnessPlanViewSet(viewsets.ModelViewSet):
-    queryset = FitnessPlan.objects.all()
     serializer_class = FitnessPlanSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = FitnessPlan.objects.all().prefetch_related('exercises__exercise')
+        
         plan_type = self.request.query_params.get('type')
+        difficulty = self.request.query_params.get('difficulty')
+
         if plan_type:
             queryset = queryset.filter(plan_type=plan_type)
+        if difficulty:
+            queryset = queryset.filter(difficulty=difficulty)
+
         return queryset
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
 
 class FitnessPlanExerciseViewSet(
     mixins.CreateModelMixin,
@@ -381,7 +390,7 @@ class MealPlanViewSet(viewsets.ModelViewSet):
         plan_type = self.request.query_params.get('type')
         if plan_type:
             queryset = queryset.filter(plan_type=plan_type)
-        return queryset
+        return queryset.prefetch_related('meal_foods')
 
 class MealFoodViewSet(
     mixins.CreateModelMixin,

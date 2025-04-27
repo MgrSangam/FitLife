@@ -326,8 +326,11 @@ class FitnessPlanExerciseSerializer(serializers.ModelSerializer):
         return representation
 
 class FitnessPlanSerializer(serializers.ModelSerializer):
-    exercises = FitnessPlanExerciseSerializer(many=True, read_only=True, source='exercises')
+    exercises = FitnessPlanExerciseSerializer(many=True, read_only=True)
     plan_type_display = serializers.CharField(source='get_plan_type_display', read_only=True)
+    difficulty_display = serializers.CharField(source='get_difficulty_display', read_only=True)
+    picture = serializers.ImageField(required=False)
+    picture_url = serializers.SerializerMethodField()
     
     class Meta:
         model = FitnessPlan
@@ -338,13 +341,22 @@ class FitnessPlanSerializer(serializers.ModelSerializer):
             'plan_type',
             'plan_type_display',
             'duration_weeks',
+            'difficulty',
+            'difficulty_display',
+            'picture',
             'created_at',
             'updated_at',
-            'exercises'
+            'exercises',
+            'picture_url'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-        
-        
+
+    def get_picture_url(self, obj):
+        request = self.context.get('request')
+        if obj.picture and request:
+            return request.build_absolute_uri(obj.picture.url)
+        return None
+
 
 class MealFoodSerializer(serializers.ModelSerializer):
     food = FoodSerializer(read_only=True)
@@ -392,8 +404,9 @@ class MealFoodSerializer(serializers.ModelSerializer):
         return representation
 
 class MealPlanSerializer(serializers.ModelSerializer):
-    meal_foods = MealFoodSerializer(many=True, read_only=True, source='meal_foods')
+    meal_foods = MealFoodSerializer(many=True, read_only=True)
     plan_type_display = serializers.CharField(source='get_plan_type_display', read_only=True)
+    image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = MealPlan
@@ -405,8 +418,15 @@ class MealPlanSerializer(serializers.ModelSerializer):
             'plan_type_display',
             'daily_calorie_target',
             'duration_weeks',
+            'image',
+            'image_url',
             'created_at',
             'updated_at',
             'meal_foods'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'image_url']
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
