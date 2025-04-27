@@ -12,7 +12,8 @@ from .views import (
     FitnessPlanExerciseViewSet,
     MealPlanViewSet,
     MealFoodViewSet,
-    InstructorProfileViewSet
+    InstructorProfileViewSet,
+    
 )
 
 router = DefaultRouter()
@@ -31,6 +32,7 @@ router.register(r'api/fitness-plans', FitnessPlanViewSet, basename='fitness-plan
 router.register(r'api/fitness-plan-exercises', FitnessPlanExerciseViewSet, basename='fitness-plan-exercises')
 router.register(r'api/meal-plans', MealPlanViewSet, basename='meal-plans')
 router.register(r'api/meal-foods', MealFoodViewSet, basename='meal-foods')
+
 urlpatterns = [
     path('', include(router.urls)),
     

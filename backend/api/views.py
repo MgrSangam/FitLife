@@ -91,7 +91,8 @@ class LoginView(viewsets.ViewSet):
                     "id": user.id,
                     "email": user.email,
                     "username": user.username,
-                    "is_instructor": bool(user.is_instructor)  # Add is_instructor
+                    "is_instructor": bool(user.is_instructor),  # Add is_instructor
+                    "is_superuser":bool(user.is_superuser)
                 },
                 "token": token
             }, status=status.HTTP_200_OK)

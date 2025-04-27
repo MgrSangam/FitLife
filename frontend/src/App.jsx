@@ -19,6 +19,7 @@ import FitnessPlan from './components/FitnessPlan'
 import MealPlan from './components/MealPlan'
 import FitnessPlanDetail from './components/FitnessDescription'
 import MealPlanDetail from './components/MealPlanDetails'
+import AdminPage from './components/Admin'
 
 function App() {
   const location = useLocation()
@@ -55,6 +56,7 @@ function App() {
                   <Route path='/mealsplan' element={<MealPlan/>} />
                   <Route path='/fitnessplan-detail/:id' element={<FitnessPlanDetail/>} />
                   <Route path='/mealplan-detail/:id' element={<MealPlanDetail/>} />
+                  <Route path='/admin' element={<AdminPage/>} />
               </Route>
              
               

@@ -81,7 +81,8 @@ class LoginSerializer(serializers.Serializer):
         return {
             "email": user.email,
             "username": user.username,
-            "is_instructor": user.is_instructor
+            "is_instructor": user.is_instructor,
+            "is_superuser": user.is_superuser
         }
 
 

@@ -71,6 +71,7 @@ const Login = () => {
     }
   };
 
+  // In the handleSubmit function within the Login component
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -86,52 +87,45 @@ const Login = () => {
         password: formData.password
       });
   
+      console.log("Login response:", response); // Debug log
+  
       if (response.status === 200 && response.data?.token) {
         const user = response.data.user || {};
+        console.log("User data:", user); // Debug log
   
         // Store authentication data
         localStorage.setItem("authToken", response.data.token);
         localStorage.setItem("user", JSON.stringify(user));
   
-        // Check if user is instructor (handle string or boolean)
+        // Check user roles (handle string or boolean values)
+        const isAdmin = user.is_superuser === true || user.is_superuser === "true";
         const isInstructor = user.is_instructor === true || user.is_instructor === "true";
   
-        // Redirect based on role
-        if (isInstructor) {
+        console.log(`User roles - Admin: ${isAdmin}, Instructor: ${isInstructor}`); // Debug log
+  
+        // Redirect based on role hierarchy
+        if (isAdmin) {
+          console.log("Redirecting to admin dashboard"); // Debug log
+          navigate("/admin", { replace: true });
+        } else if (isInstructor) {
+          console.log("Redirecting to instructor dashboard"); // Debug log
           navigate("/instructor", { replace: true });
         } else {
+          console.log("Redirecting to home"); // Debug log
           navigate("/home", { replace: true });
         }
       } else {
         throw new Error("Invalid response from server");
       }
     } catch (err) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-  
+      console.error("Login error:", err); // Debug log
+      
       let errorMessage = "Login failed. Please try again.";
-  
       if (err.response) {
-        switch (err.response.status) {
-          case 400:
-            errorMessage = err.response.data?.error || "Invalid input data";
-            break;
-          case 401:
-            errorMessage = "Invalid email or password";
-            break;
-          case 403:
-            errorMessage = "Account not authorized";
-            break;
-          case 500:
-            errorMessage = "Server error. Please try again later.";
-            break;
-          default:
-            errorMessage = `Error: ${err.response.status}`;
-        }
-      } else if (err.request) {
-        errorMessage = "No response from server. Check your connection.";
-      } else if (err.message) {
-        errorMessage = err.message;
+        console.log("Error response data:", err.response.data); // Debug log
+        console.log("Error status:", err.response.status); // Debug log
+        
+        errorMessage = err.response.data?.error || err.message;
       }
   
       setErrors(prev => ({
