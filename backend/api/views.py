@@ -324,9 +324,85 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
 
 
+from rest_framework import viewsets, mixins
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .models import FitnessPlan, FitnessPlanExercise
+from .serializers import FitnessPlanSerializer, FitnessPlanExerciseSerializer
 
+class FitnessPlanViewSet(viewsets.ModelViewSet):
+    queryset = FitnessPlan.objects.all()
+    serializer_class = FitnessPlanSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        plan_type = self.request.query_params.get('type')
+        if plan_type:
+            queryset = queryset.filter(plan_type=plan_type)
+        return queryset
+
+class FitnessPlanExerciseViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = FitnessPlanExercise.objects.all()
+    serializer_class = FitnessPlanExerciseSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        plan_id = self.request.query_params.get('plan_id')
+        day = self.request.query_params.get('day')
+        
+        if plan_id:
+            queryset = queryset.filter(fitness_plan_id=plan_id)
+        if day:
+            queryset = queryset.filter(day=day)
+        return queryset
 
         
         
 
 
+from rest_framework import viewsets, mixins
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .models import MealPlan, MealFood
+from .serializers import MealPlanSerializer, MealFoodSerializer
+
+class MealPlanViewSet(viewsets.ModelViewSet):
+    queryset = MealPlan.objects.all()
+    serializer_class = MealPlanSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        plan_type = self.request.query_params.get('type')
+        if plan_type:
+            queryset = queryset.filter(plan_type=plan_type)
+        return queryset
+
+class MealFoodViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = MealFood.objects.all()
+    serializer_class = MealFoodSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        plan_id = self.request.query_params.get('plan_id')
+        day = self.request.query_params.get('day')
+        meal_time = self.request.query_params.get('meal_time')
+        
+        if plan_id:
+            queryset = queryset.filter(meal_plan_id=plan_id)
+        if day:
+            queryset = queryset.filter(day=day)
+        if meal_time:
+            queryset = queryset.filter(meal_time=meal_time)
+        return queryset

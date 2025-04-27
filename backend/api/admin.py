@@ -203,3 +203,83 @@ class SubscriptionAdmin(admin.ModelAdmin):
         # Custom logic to handle saving the subscription, if needed
         super().save_model(request, obj, form, change)
 
+
+from django.contrib import admin
+from .models import FitnessPlan, FitnessPlanExercise
+
+class FitnessPlanExerciseInline(admin.TabularInline):
+    model = FitnessPlanExercise
+    extra = 1
+    fields = ['exercise', 'day', 'sets', 'reps', 'duration_minutes', 'order']
+    ordering = ['day', 'order']
+
+@admin.register(FitnessPlan)
+class FitnessPlanAdmin(admin.ModelAdmin):
+    list_display = ['name', 'plan_type', 'duration_weeks', 'created_at']
+    list_filter = ['plan_type', 'created_at']
+    search_fields = ['name', 'description']
+    inlines = [FitnessPlanExerciseInline]
+    
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'plan_type', 'duration_weeks')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(FitnessPlanExercise)
+class FitnessPlanExerciseAdmin(admin.ModelAdmin):
+    list_display = ['fitness_plan', 'exercise', 'day', 'sets', 'reps', 'order']
+    list_filter = ['day', 'fitness_plan']
+    search_fields = ['exercise__name', 'fitness_plan__name']
+    list_select_related = ['fitness_plan', 'exercise']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('fitness_plan', 'exercise')
+    
+    
+    
+
+from django.contrib import admin
+from .models import MealPlan, MealFood
+
+class MealFoodInline(admin.TabularInline):
+    model = MealFood
+    extra = 1
+    fields = ['food', 'meal_time', 'quantity_grams', 'day', 'order']
+    readonly_fields = ['total_calories', 'total_carbs', 'total_protein', 'total_fat']
+    ordering = ['day', 'meal_time', 'order']
+
+@admin.register(MealPlan)
+class MealPlanAdmin(admin.ModelAdmin):
+    list_display = ['name', 'plan_type', 'daily_calorie_target', 'duration_weeks']
+    list_filter = ['plan_type', 'created_at']
+    search_fields = ['name', 'description']
+    inlines = [MealFoodInline]
+    
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'plan_type', 'daily_calorie_target', 'duration_weeks')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(MealFood)
+class MealFoodAdmin(admin.ModelAdmin):
+    list_display = ['meal_plan', 'food', 'meal_time', 'day', 'quantity_grams', 'total_calories']
+    list_filter = ['meal_time', 'day', 'meal_plan']
+    search_fields = ['food__name', 'meal_plan__name']
+    list_select_related = ['meal_plan', 'food']
+    
+    readonly_fields = ['total_calories', 'total_carbs', 'total_protein', 'total_fat']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('meal_plan', 'food')

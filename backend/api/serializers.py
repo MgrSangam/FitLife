@@ -296,3 +296,117 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'plan', 'is_active', 'start_date', 'end_date', 'trainer', 'nutritionist']
         read_only_fields = ['is_active', 'start_date', 'end_date', 'trainer', 'nutritionist', 'user']
 
+class FitnessPlanExerciseSerializer(serializers.ModelSerializer):
+    exercise = ExerciseSerializer(read_only=True)
+    exercise_id = serializers.PrimaryKeyRelatedField(
+        queryset=Exercise.objects.all(),
+        source='exercise',
+        write_only=True
+    )
+    
+    class Meta:
+        model = FitnessPlanExercise
+        fields = [
+            'id',
+            'exercise',
+            'exercise_id',
+            'day',
+            'sets',
+            'reps',
+            'duration_minutes',
+            'order'
+        ]
+        extra_kwargs = {
+            'day': {'help_text': "Day of the week for this exercise"}
+        }
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['day'] = dict(FitnessPlanExercise.DAYS_OF_WEEK).get(instance.day)
+        return representation
+
+class FitnessPlanSerializer(serializers.ModelSerializer):
+    exercises = FitnessPlanExerciseSerializer(many=True, read_only=True, source='exercises')
+    plan_type_display = serializers.CharField(source='get_plan_type_display', read_only=True)
+    
+    class Meta:
+        model = FitnessPlan
+        fields = [
+            'id',
+            'name',
+            'description',
+            'plan_type',
+            'plan_type_display',
+            'duration_weeks',
+            'created_at',
+            'updated_at',
+            'exercises'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+        
+        
+
+class MealFoodSerializer(serializers.ModelSerializer):
+    food = FoodSerializer(read_only=True)
+    food_id = serializers.PrimaryKeyRelatedField(
+        queryset=Food.objects.all(),
+        source='food',
+        write_only=True
+    )
+    total_calories = serializers.SerializerMethodField()
+    total_carbs = serializers.SerializerMethodField()
+    total_protein = serializers.SerializerMethodField()
+    total_fat = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = MealFood
+        fields = [
+            'id',
+            'food',
+            'food_id',
+            'meal_time',
+            'quantity_grams',
+            'day',
+            'order',
+            'total_calories',
+            'total_carbs',
+            'total_protein',
+            'total_fat'
+        ]
+    
+    def get_total_calories(self, obj):
+        return round(obj.total_calories, 2)
+    
+    def get_total_carbs(self, obj):
+        return round(obj.total_carbs, 2)
+    
+    def get_total_protein(self, obj):
+        return round(obj.total_protein, 2)
+    
+    def get_total_fat(self, obj):
+        return round(obj.total_fat, 2)
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['meal_time'] = dict(MealFood.MEAL_TIME_CHOICES).get(instance.meal_time)
+        return representation
+
+class MealPlanSerializer(serializers.ModelSerializer):
+    meal_foods = MealFoodSerializer(many=True, read_only=True, source='meal_foods')
+    plan_type_display = serializers.CharField(source='get_plan_type_display', read_only=True)
+    
+    class Meta:
+        model = MealPlan
+        fields = [
+            'id',
+            'name',
+            'description',
+            'plan_type',
+            'plan_type_display',
+            'daily_calorie_target',
+            'duration_weeks',
+            'created_at',
+            'updated_at',
+            'meal_foods'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
