@@ -336,39 +336,37 @@ class FitnessPlanExerciseSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['day'] = dict(FitnessPlanExercise.DAYS_OF_WEEK).get(instance.day)
         return representation
-
+import json
 class FitnessPlanSerializer(serializers.ModelSerializer):
-    exercises = FitnessPlanExerciseSerializer(many=True, read_only=True)
-    plan_type_display = serializers.CharField(source='get_plan_type_display', read_only=True)
-    difficulty_display = serializers.CharField(source='get_difficulty_display', read_only=True)
-    picture = serializers.ImageField(required=False)
-    picture_url = serializers.SerializerMethodField()
+    exercises = FitnessPlanExerciseSerializer(many=True, required=False)
     
     class Meta:
         model = FitnessPlan
-        fields = [
-            'id',
-            'name',
-            'description',
-            'plan_type',
-            'plan_type_display',
-            'duration_weeks',
-            'difficulty',
-            'difficulty_display',
-            'picture',
-            'created_at',
-            'updated_at',
-            'exercises',
-            'picture_url'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = '__all__'
 
-    def get_picture_url(self, obj):
-        request = self.context.get('request')
-        if obj.picture and request:
-            return request.build_absolute_uri(obj.picture.url)
-        return None
-
+    def create(self, validated_data):
+        exercises_data = []
+        if 'exercises' in validated_data:
+            # Handle exercises if they come as JSON string
+            if isinstance(validated_data['exercises'], str):
+                exercises_data = json.loads(validated_data.pop('exercises'))
+            else:
+                exercises_data = validated_data.pop('exercises', [])
+        
+        fitness_plan = FitnessPlan.objects.create(**validated_data)
+        
+        for exercise_data in exercises_data:
+            FitnessPlanExercise.objects.create(
+                fitness_plan=fitness_plan,
+                exercise_id=exercise_data['exercise'],
+                day=exercise_data['day'],
+                sets=exercise_data['sets'],
+                reps=exercise_data['reps'],
+                duration_minutes=exercise_data.get('duration_minutes'),
+                order=exercise_data.get('order', 0)
+            )
+        
+        return fitness_plan
 
 class MealFoodSerializer(serializers.ModelSerializer):
     food = FoodSerializer(read_only=True)

@@ -87,44 +87,53 @@ const Login = () => {
         password: formData.password
       });
   
-      console.log("Login response:", response); // Debug log
+      console.log("Login response:", response);
   
       if (response.status === 200 && response.data?.token) {
         const user = response.data.user || {};
-        console.log("User data:", user); // Debug log
   
         // Store authentication data
         localStorage.setItem("authToken", response.data.token);
         localStorage.setItem("user", JSON.stringify(user));
   
-        // Check user roles (handle string or boolean values)
+        // Set the token for future requests
+        AxiosInstance.defaults.headers.common["Authorization"] = `Token ${response.data.token}`;
+  
         const isAdmin = user.is_superuser === true || user.is_superuser === "true";
         const isInstructor = user.is_instructor === true || user.is_instructor === "true";
   
-        console.log(`User roles - Admin: ${isAdmin}, Instructor: ${isInstructor}`); // Debug log
-  
         // Redirect based on role hierarchy
         if (isAdmin) {
-          console.log("Redirecting to admin dashboard"); // Debug log
           navigate("/admin", { replace: true });
         } else if (isInstructor) {
-          console.log("Redirecting to instructor dashboard"); // Debug log
           navigate("/instructor", { replace: true });
         } else {
-          console.log("Redirecting to home"); // Debug log
-          navigate("/home", { replace: true });
+          // If normal user, check if goals exist
+          try {
+            const goalsResponse = await AxiosInstance.get(`/goals/`);
+            console.log("Goals response:", goalsResponse.data);
+  
+            if (!goalsResponse.data || goalsResponse.data.length === 0) {
+              console.log("No goals found, redirecting to goals page");
+              navigate("/goals", { replace: true });
+            } else {
+              console.log("Goals found, redirecting to home page");
+              navigate("/home", { replace: true });
+            }
+          } catch (goalError) {
+            console.error("Error fetching goals:", goalError);
+            // If error fetching goals, assume no goals exist
+            navigate("/goals", { replace: true });
+          }
         }
       } else {
         throw new Error("Invalid response from server");
       }
     } catch (err) {
-      console.error("Login error:", err); // Debug log
+      console.error("Login error:", err);
       
       let errorMessage = "Login failed. Please try again.";
       if (err.response) {
-        console.log("Error response data:", err.response.data); // Debug log
-        console.log("Error status:", err.response.status); // Debug log
-        
         errorMessage = err.response.data?.error || err.message;
       }
   
@@ -136,6 +145,7 @@ const Login = () => {
       setLoading(false);
     }
   };
+  
   
   
   return (

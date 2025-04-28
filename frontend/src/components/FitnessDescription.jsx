@@ -23,7 +23,8 @@ const FitnessPlanDetail = () => {
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const { data } = await AxiosInstance.get(`/api/meal-plans/${id}/`);
+        const { data } = await AxiosInstance.get(`/api/fitness-plans/${id}/`);
+
         setPlan(data);
       } catch (err) {
         setError("Failed to fetch plan details");

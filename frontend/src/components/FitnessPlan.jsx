@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaDumbbell, FaCalendarAlt, FaClock, FaHeartbeat } from "react-icons/fa";
+import { FaDumbbell, FaCalendarAlt, FaHeartbeat } from "react-icons/fa";
 import AxiosInstance from "./Axiosinstance";
 import { useNavigate } from "react-router-dom";
 import "./FitnessPlan.css"; // Reusing Challenge.css for styling
@@ -82,24 +82,21 @@ const FitnessPlan = () => {
 
               <div className="card-content">
                 <div className="details-container">
-                <div className="detail-item">
-                  <FaDumbbell className="detail-icon" />
-                  <span className="capitalize">
-                    {plan.goal_type ? plan.goal_type.replace("_", " ") : "No goal specified"}
-                  </span>
-                </div>
+                  <div className="detail-item">
+                    <FaDumbbell className="detail-icon" />
+                    <span className="capitalize">
+                      {plan.plan_type_display ? plan.plan_type_display : "No goal specified"}
+                    </span>
+                  </div>
 
                   <div className="detail-item">
                     <FaCalendarAlt className="detail-icon" />
                     <span>{plan.duration_weeks} Weeks</span>
                   </div>
-                  <div className="detail-item">
-                    <FaClock className="detail-icon" />
-                    <span>{plan.sessions_per_week} Sessions/Week</span>
-                  </div>
+
                   <div className="detail-item">
                     <FaHeartbeat className="detail-icon" />
-                    <span>{plan.intensity_level}</span>
+                    <span>{plan.difficulty ? plan.difficulty : "Unknown"}</span>
                   </div>
                 </div>
               </div>

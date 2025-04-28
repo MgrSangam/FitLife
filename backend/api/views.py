@@ -304,25 +304,24 @@ from .models import FitnessPlan, FitnessPlanExercise
 from .serializers import FitnessPlanSerializer, FitnessPlanExerciseSerializer
 
 class FitnessPlanViewSet(viewsets.ModelViewSet):
+    queryset = FitnessPlan.objects.all().prefetch_related('exercises__exercise')
     serializer_class = FitnessPlanSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get_queryset(self):
-        queryset = FitnessPlan.objects.all().prefetch_related('exercises__exercise')
+    def create(self, request, *args, **kwargs):
+        # Handle JSON string for exercises if needed
+        if 'exercises' in request.data and isinstance(request.data['exercises'], str):
+            try:
+                request.data._mutable = True
+                request.data['exercises'] = json.loads(request.data['exercises'])
+                request.data._mutable = False
+            except json.JSONDecodeError:
+                return Response(
+                    {'exercises': 'Invalid JSON format'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         
-        plan_type = self.request.query_params.get('type')
-        difficulty = self.request.query_params.get('difficulty')
-
-        if plan_type:
-            queryset = queryset.filter(plan_type=plan_type)
-        if difficulty:
-            queryset = queryset.filter(difficulty=difficulty)
-
-        return queryset
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-
+        return super().create(request, *args, **kwargs)
 
 class FitnessPlanExerciseViewSet(
     mixins.CreateModelMixin,
@@ -438,10 +437,10 @@ from rest_framework.permissions import IsAdminUser
 from .models import CustomUser
 from .serializers import CustomUserSerializer
 
+# views.py
+from rest_framework.permissions import IsAuthenticated  # or AllowAny
+
 class InstructorViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.filter(is_instructor=True)
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAdminUser]  # Ensure only admins can add instructors
-
-    def perform_create(self, serializer):
-        serializer.save(is_instructor=True)  # Ensure is_instructor is set
+    permission_classes = [IsAuthenticated]  # Less restrictive than IsAdminUser
