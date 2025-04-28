@@ -107,7 +107,7 @@ class LoginView(viewsets.ViewSet):
         
  # admin.py    
 
-class ChallengeView(viewsets.ReadOnlyModelViewSet):
+class ChallengeView(viewsets.ModelViewSet):
     queryset = Challenge.objects.all().order_by('-created_at')
     serializer_class = ChallengeSerializer
     permission_classes = [permissions.AllowAny]
@@ -157,48 +157,21 @@ class EducationalContentViewSet(viewsets.ModelViewSet):
     queryset = EducationalContent.objects.all().order_by('-upload_date')
     serializer_class = EducationalContentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
     def get_permissions(self):
-        # Only admins can create/update/delete content
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAdminUser()]
         return super().get_permissions()
     
     def get_queryset(self):
         queryset = super().get_queryset()
-        # You could add filtering here if needed (e.g., by content_type)
         return queryset
-    
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def rate_content(self, request, pk=None):
-        content = self.get_object()
-        rating = request.data.get('rating')
-        
-        if not rating or not 1 <= float(rating) <= 5:
-            return Response(
-                {"error": "Please provide a valid rating between 1 and 5"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # In a real implementation, you'd want to:
-        # 1. Track which user submitted the rating
-        # 2. Store individual ratings in a separate model
-        # 3. Calculate average rating from all user ratings
-        
-        content.rating = (content.rating + float(rating)) / 2
-        content.save()
-        
-        return Response(
-            {"message": "Rating submitted successfully", "new_rating": content.rating},
-            status=status.HTTP_200_OK
-        )
-    
-    @action(detail=True, methods=['post'])
-    def increment_views(self, request, pk=None):
-        content = self.get_object()
-        content.views += 1
-        content.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})  # <--- Add this line
+        return context
+
     
 
 
@@ -417,50 +390,58 @@ class MealFoodViewSet(
             queryset = queryset.filter(meal_time=meal_time)
         return queryset
     
-    
+from rest_framework import viewsets
+from .models import Exercise
+from .serializers import ExerciseSerializer
+
+class ExerciseViewSet(viewsets.ModelViewSet):
+    queryset = Exercise.objects.all()
+    serializer_class = ExerciseSerializer    
 
 
+# views.py
+from rest_framework import viewsets
+from .models import Food
+from .serializers import FoodSerializer
+
+class FoodViewSet(viewsets.ModelViewSet):
+    queryset = Food.objects.all()
+    serializer_class = FoodSerializer
 
 # serializers.py
-from rest_framework import viewsets, permissions, status
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from django.db.models import Count, Q
+
+    
+    
+    
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from .serializers import UserSerializer
 from django.contrib.auth import get_user_model
-from .serializers import InstructorProfileSerializer
 
 User = get_user_model()
 
-class InstructorProfileViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = InstructorProfileSerializer
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    # Filter out superusers, staff, and instructors here
+    queryset = User.objects.filter(
+        is_superuser=False,
+        is_staff=False,
+        is_instructor=False  # Assuming the field is named 'is_instructor'
+    )
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]  # Only authenticated users can view this data
 
-    def get_queryset(self):
-        if not self.request.user.is_instructor:
-            return User.objects.none()
-        
-        return User.objects.filter(
-            pk=self.request.user.pk
-        ).annotate(
-            assigned_clients_count=Count(
-                'trainer_subscriptions',
-                filter=Q(trainer_subscriptions__is_active=True)
-            ) + Count(
-                'nutritionist_subscriptions',
-                filter=Q(nutritionist_subscriptions__is_active=True)
-            )
-        )
-    
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
-        if not queryset.exists():
-            return Response(
-                {"error": "No instructor profile found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-            
-        instance = queryset.first()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+
+
+# views.py
+from rest_framework import viewsets, permissions
+from .models import CustomUser
+from .serializers import CustomUserSerializer
+
+class InstructorViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.filter(is_instructor=True)
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_create(self, serializer):
+        # Ensure the user is marked as an instructor when created
+        serializer.save(is_instructor=True)

@@ -1,0 +1,232 @@
+.challenge-management {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+h2, h3 {
+  color: #333;
+}
+
+.loading, .error {
+  padding: 20px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.error {
+  color: #d32f2f;
+}
+
+button {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: none;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.add-button {
+  background-color: #6d28d9;
+  color: white;
+}
+
+.add-button:hover {
+  background-color: #5b21b6;
+}
+
+.edit-button {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.edit-button:hover {
+  background-color: #e0e0e0;
+}
+
+.delete-button {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.delete-button:hover {
+  background-color: #fee2e2;
+}
+
+.add-form {
+  background-color: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+input, select, textarea {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+input[type="file"] {
+  padding: 6px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-button {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.cancel-button:hover {
+  background-color: #e5e7eb;
+}
+
+.submit-button {
+  background-color: #6d28d9;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #5b21b6;
+}
+
+.challenges-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.challenges-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+.challenges-table th, .challenges-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.challenges-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.challenges-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.actions {
+  display: flex;
+  gap: 5px;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* Image styles */
+.challenge-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.image-preview {
+  margin-top: 10px;
+}
+
+.preview-image {
+  max-width: 200px;
+  max-height: 150px;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Add these styles to your existing CSS file */
+
+.error-field {
+  border-color: #dc2626 !important;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Make sure your file input is styled properly */
+input[type="file"] {
+  border: 1px solid #d1d5db;
+  padding: 8px;
+  border-radius: 4px;
+  width: 100%;
+  background: white;
+}
+
+/* Improve image preview styling */
+.image-preview {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}

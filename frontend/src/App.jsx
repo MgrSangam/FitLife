@@ -57,6 +57,7 @@ function App() {
                   <Route path='/fitnessplan-detail/:id' element={<FitnessPlanDetail/>} />
                   <Route path='/mealplan-detail/:id' element={<MealPlanDetail/>} />
                   <Route path='/admin' element={<AdminPage/>} />
+
               </Route>
              
               

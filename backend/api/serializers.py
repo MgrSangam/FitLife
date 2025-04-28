@@ -87,18 +87,28 @@ class LoginSerializer(serializers.Serializer):
 
 
     
+from rest_framework import serializers
+from .models import Challenge
+
 class ChallengeSerializer(serializers.ModelSerializer):
-    image_url = serializers.ImageField(source='image', read_only=True)
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
-        model  = Challenge
-        # include image_url so frontend gets the absolute URL
+        model = Challenge
         fields = [
-            'id','title','description',
-            'duration','start_date','end_date',
-            'difficulty','muscle_group','workout_type',
-            'image_url','created_at'
+            'id', 'title', 'description',
+            'duration', 'start_date', 'end_date',
+            'difficulty', 'muscle_group', 'workout_type','image',
+            'image_url', 'created_at'
         ]
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+
 
 
     
@@ -127,21 +137,22 @@ class ChallengeParticipantSerializer(serializers.ModelSerializer):
 
 # Add to your serializers.py
 
+# In serializers.py
 class EducationalContentSerializer(serializers.ModelSerializer):
-    thumbnail_url = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = EducationalContent
         fields = [
             'id', 'title', 'description', 'content_type', 'category',
-            'upload_date', 'thumbnail_url', 'video_url', 
-            'blog_content', 'views', 'rating',
+            'upload_date', 'thumbnail', 'video_url', 'blog_content', 'views', 'rating'
         ]
 
-    def get_thumbnail_url(self, obj):
-        request = self.context.get('request')
-        return request.build_absolute_uri(obj.thumbnail.url) if obj.thumbnail and request else None
-
+    def get_thumbnail(self, obj):
+        if obj.thumbnail:
+            return self.context['request'].build_absolute_uri(obj.thumbnail.url)
+        return None
+    
     def validate(self, data):
         content_type = data.get('content_type', self.instance.content_type if self.instance else None)
         if content_type == 'video' and not data.get('video_url'):
@@ -435,44 +446,47 @@ class MealPlanSerializer(serializers.ModelSerializer):
     
     
 
+
+    
+    
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import SubscriptionPlan
 
 User = get_user_model()
 
-class InstructorProfileSerializer(serializers.ModelSerializer):
-    assigned_clients_count = serializers.SerializerMethodField()
-    
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'age',
-            'birthday',
-            'contact',
-            'experience',
-            'bio',
-            'specialization',
-            'is_instructor',
-            'assigned_clients_count'
-        ]
-    
-    def get_assigned_clients_count(self, obj):
-        # Count clients assigned through trainer relationship
-        trainer_count = SubscriptionPlan.objects.filter(
-            trainer=obj,
-            is_active=True
-        ).count()
-        
-        # Count clients assigned through nutritionist relationship
-        nutritionist_count = SubscriptionPlan.objects.filter(
-            nutritionist=obj,
-            is_active=True
-        ).count()
-        
-        return trainer_count + nutritionist_count
+        fields = ['id', 'username', 'email', 'date_joined', 'is_instructor', 'age', 'height', 'weight']
+
+
+
+
+
+# for admin
+# serializers.py
+from rest_framework import serializers
+from .models import CustomUser
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'email', 'username', 'is_instructor', 'contact', 
+                 'experience', 'bio', 'specialization']
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        user = CustomUser.objects.create_user(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            password=validated_data['password'],
+            is_instructor=validated_data.get('is_instructor', False),
+            contact=validated_data.get('contact'),
+            experience=validated_data.get('experience'),
+            bio=validated_data.get('bio'),
+            specialization=validated_data.get('specialization')
+        )
+        return user

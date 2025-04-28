@@ -1,0 +1,155 @@
+/* Base styles */
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+/* Header styles */
+.admin-header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #7c3aed;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.dashboard-button,
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  text-decoration: none;
+}
+
+.dashboard-button {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.dashboard-button:hover {
+  background-color: #e5e7eb;
+}
+
+.logout-button {
+  background-color: #ef4444;
+  color: white;
+}
+
+.logout-button:hover {
+  background-color: #dc2626;
+}
+
+/* Main content layout */
+.admin-content {
+  display: flex;
+  flex: 1;
+}
+
+/* Sidebar styles */
+.admin-sidebar {
+  width: 16rem;
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  border-radius: 0.375rem;
+  margin-bottom: 0.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.sidebar-button:hover {
+  background-color: #f3f4f6;
+}
+
+.sidebar-button.active {
+  background-color: #7c3aed;
+  color: white;
+}
+
+/* Main content styles */
+.admin-main {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.content-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
+.content-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.content-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.content-body {
+  padding: 0.5rem 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .admin-content {
+    flex-direction: column;
+  }
+  
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  
+  .sidebar-button {
+    min-width: max-content;
+  }
+}
