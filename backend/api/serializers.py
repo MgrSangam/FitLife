@@ -472,21 +472,19 @@ from .models import CustomUser
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'username', 'is_instructor', 'contact', 
-                 'experience', 'bio', 'specialization']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+        fields = ['id', 'username', 'email', 'password', 'contact', 'experience', 'bio', 'specialization']
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            password=validated_data['password'],
-            is_instructor=validated_data.get('is_instructor', False),
-            contact=validated_data.get('contact'),
-            experience=validated_data.get('experience'),
-            bio=validated_data.get('bio'),
-            specialization=validated_data.get('specialization')
+            validated_data['username'],
+            validated_data['email'],
+            validated_data['password']
         )
+        user.contact = validated_data.get('contact', '')
+        user.experience = validated_data.get('experience', '')
+        user.bio = validated_data.get('bio', '')
+        user.specialization = validated_data.get('specialization', '')
+        user.is_instructor = True
+        user.save()
         return user

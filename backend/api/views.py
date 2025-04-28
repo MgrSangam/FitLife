@@ -433,15 +433,15 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # views.py
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
+from rest_framework.permissions import IsAdminUser
 from .models import CustomUser
 from .serializers import CustomUserSerializer
 
 class InstructorViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.filter(is_instructor=True)
     serializer_class = CustomUserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminUser]  # Ensure only admins can add instructors
 
     def perform_create(self, serializer):
-        # Ensure the user is marked as an instructor when created
-        serializer.save(is_instructor=True)
+        serializer.save(is_instructor=True)  # Ensure is_instructor is set

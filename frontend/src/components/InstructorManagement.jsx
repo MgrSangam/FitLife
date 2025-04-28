@@ -45,13 +45,14 @@ const InstructorManagement = () => {
       showNotification("Username, email, and password are required", "error");
       return;
     }
-
+  
     try {
+      console.log("Instructor to add:", newInstructor); // Check the object before sending
       await AxiosInstance.post("/instructors/", newInstructor);
-      fetchInstructors();
-      setNewInstructor({
+      fetchInstructors();  // Refresh list of instructors
+      setNewInstructor({ 
         username: "",
-        email: "",
+        email: "", 
         password: "",
         contact: "",
         experience: "",
@@ -61,9 +62,11 @@ const InstructorManagement = () => {
       setIsAdding(false);
       showNotification("Instructor added successfully!", "success");
     } catch (error) {
+      console.error("Error adding instructor:", error);  // Log the error for debugging
       showNotification("Failed to add instructor", "error");
     }
   };
+  
 
   const handleDeleteInstructor = async (id) => {
     try {
