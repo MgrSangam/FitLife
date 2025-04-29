@@ -31,21 +31,6 @@ const TAB_TYPES = {
   ARTICLES: "articles"
 };
 
-const sampleContent = [
-  {
-    id: "1",
-    title: "Beginner's Guide to Strength Training",
-    description: "Learn the fundamentals of strength training with proper form and technique.",
-    type: CONTENT_TYPES.VIDEO,
-    category: CONTENT_CATEGORIES.WORKOUTS,
-    duration: "15 min",
-    author: "Coach Sarah",
-    rating: 4.8,
-    featured: true,
-    image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&auto=format&fit=crop",
-    link: "#",
-  }
-];
 
 const Education = () => {
   const [content, setContent] = useState([]);
@@ -55,22 +40,34 @@ const Education = () => {
   const [activeTab, setActiveTab] = useState(TAB_TYPES.ALL);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const response = await AxiosInstance.get("/education/");
-        setContent(response.data);
-      } catch (err) {
-        console.error("Error fetching content:", err);
-        setError("Failed to load educational content. Showing sample data.");
-        setContent(sampleContent);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchContent();
-  }, []);
+    useEffect(() => {
+      const fetchContent = async () => {
+        try {
+          setLoading(true);
+          const response = await AxiosInstance.get("/education/");
+          console.log("Full API Response:", response);
+          console.log("Content Data:", response.data);
+          
+          // Verify thumbnail URLs in the response
+          response.data.forEach(item => {
+            console.log(`Item ${item.id} thumbnail:`, item.thumbnail_url);
+          });
+          
+          setContent(response.data);
+        } catch (err) {
+          console.error("Error details:", err.response?.data || err.message);
+          setError("Failed to load educational content. Please try again later.");
+          setContent([]); // Set empty array instead of sample content
+        } finally {
+          setLoading(false);
+        }
+      };
+    
+      fetchContent();
+    }, []);
+  
+
 
   const filteredContent = selectedCategory === CONTENT_CATEGORIES.ALL
     ? content
@@ -79,10 +76,10 @@ const Education = () => {
   const featuredContent = content.filter(item => item.featured);
 
   const displayedContent = activeTab === TAB_TYPES.ALL
-    ? filteredContent
-    : activeTab === TAB_TYPES.VIDEOS
-      ? filteredContent.filter(item => (item.content_type || item.type) === CONTENT_TYPES.VIDEO)
-      : filteredContent.filter(item => (item.content_type || item.type) === CONTENT_TYPES.ARTICLE);
+  ? filteredContent
+  : activeTab === TAB_TYPES.VIDEOS
+    ? filteredContent.filter(item => item.content_type === "video")
+    : filteredContent.filter(item => item.content_type === "blog"); 
 
   const formatDuration = (duration) => {
     if (!duration) return "";
@@ -99,11 +96,18 @@ const Education = () => {
   const ContentCard = ({ item }) => (
     <div className="content-card">
       <div className="card-image">
-        {item.thumbnail_url || item.image ? (
-          <img src={item.thumbnail_url || item.image} alt={item.title} />
+        {item.thumbnail_url ? (
+          <img 
+            src={item.thumbnail_url} 
+            alt={item.title}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://via.placeholder.com/300x200?text=No+Thumbnail";
+            }}
+          />
         ) : (
           <div className="placeholder-image">
-            {(item.content_type || item.type) === CONTENT_TYPES.VIDEO ? <FaVideo /> : <FaBookOpen />}
+            {item.content_type === CONTENT_TYPES.VIDEO ? <FaVideo /> : <FaBookOpen />}
           </div>
         )}
         {(item.content_type || item.type) === CONTENT_TYPES.VIDEO && (

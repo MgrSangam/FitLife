@@ -1,10 +1,19 @@
 /* Challenge.css */
-
-.challenges-container {
-  padding: 2rem;
-  background-color: #f9f9f9;
+.challenge-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Arial', sans-serif;
+  background: white;
+  
 }
+.challenge-detail {
 
+  margin: 0 auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+ 
+}
 .challenges-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -205,4 +214,38 @@
 .join-button-detail[disabled] {
   background: #ccc;
   cursor: not-allowed;
+}
+
+/* Add these styles to your existing CSS */
+
+.image-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.download-button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.download-button:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.download-button svg {
+  font-size: 16px;
 }

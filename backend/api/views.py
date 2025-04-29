@@ -200,7 +200,7 @@ class EducationalContentViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({"request": self.request})
+        context['request'] = self.request
         return context
 
 #
@@ -422,15 +422,11 @@ class MealFoodViewSet(
             queryset = queryset.filter(meal_time=meal_time)
         return queryset
     
-from rest_framework import viewsets
-from .models import Exercise
-from .serializers import ExerciseSerializer
-
 class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.all()
-    serializer_class = ExerciseSerializer    
-
-
+    serializer_class = ExerciseSerializer
+    
+    
 # views.py
 from rest_framework import viewsets
 from .models import Food

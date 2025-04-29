@@ -104,32 +104,42 @@ const HomePage = () => {
       
       
       <div className="joined-challenges-section">
-        <h2 className="section-title">
-          <FaTrophy /> Active Challenges
-        </h2>
-        
-    You have not participated in any challenge yet.
-      {joinedChallenges.map(participant => (
-        <div key={participant.id} className="challenge-card">
-          <div className="challenge-header">
-        <div className="challenge-icon">
-          {getChallengeIcon(participant.challenge.title)}
-        </div>
-        <h3 className="challenge-title">{participant.challenge.title}</h3>
-      </div>
-    
-        <div className="challenge-details">
-        <p>
-          <FaCalendarAlt /> {participant.challenge.duration} days
-        </p>
-        <p>
-          <FaUsers /> {participant.challenge.participants_count} participants
-      </p>
+  <h2 className="section-title">
+    <FaTrophy /> Active Challenges
+  </h2>
+  
+  {/* Add the conditional rendering here */}
+  {joinedChallenges.length === 0 ? (
+    <div className="no-challenges">
+      <p>You haven't joined any challenges yet.</p>
+      <Link to="/challenges" className="browse-link">
+        Browse Challenges
+      </Link>
     </div>
-  </div>
-))}
-      </div>
-      
+  ) : (
+    <div className="challenges-grid">
+      {joinedChallenges.map(challenge => (
+        <div key={challenge.id} className="challenge-card">
+          <div className="challenge-header">
+            <div className="challenge-icon">
+              {getChallengeIcon(challenge.title)}
+            </div>
+            <h3 className="challenge-title">{challenge.title}</h3>
+          </div>
+          
+          <div className="challenge-details">
+            <p>
+              <FaCalendarAlt /> {challenge.duration} days
+            </p>
+            <p>
+              <FaUsers /> {challenge.participants} participants
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
       {/* Features Section */}
       <div className="features-section">
         <div className="feature-card">

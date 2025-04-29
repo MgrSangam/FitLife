@@ -68,56 +68,58 @@ const ContentManagement = () => {
       alert("Please fill all required fields");
       return;
     }
-
+  
     try {
       const formData = new FormData();
       formData.append("title", newContent.title);
       formData.append("description", newContent.description);
       formData.append("content_type", newContent.content_type);
       formData.append("category", newContent.category);
-
+  
       if (newContent.content_type === "video") {
         formData.append("video_url", newContent.video_url);
       } else {
         formData.append("blog_content", newContent.blog_content);
       }
-
+  
       if (newContent.thumbnail) {
-        console.log("Thumbnail file:", newContent.thumbnail);
-        console.log("Thumbnail name:", newContent.thumbnail.name);
-        console.log("Thumbnail size:", newContent.thumbnail.size);
-        console.log("Thumbnail type:", newContent.thumbnail.type);
         formData.append("thumbnail", newContent.thumbnail);
-      } else {
-        console.log("No thumbnail selected");
       }
-
+  
+      // Debug: Log FormData contents
       for (let [key, value] of formData.entries()) {
-        console.log(`FormData: ${key} =`, value);
+        console.log(`${key}:`, value);
       }
-
-      const response = await AxiosInstance.post("/education/", formData);
-      console.log("Response data:", response.data);
-
-      setContents([response.data, ...contents]);
-      setNewContent({
-        title: "",
-        description: "",
-        content_type: "video",
-        category: "workouts",
-        video_url: "",
-        blog_content: "",
-        thumbnail: null
+  
+      const response = await AxiosInstance.post("/education/", formData, {
+        headers: {
+          // Let the browser set the Content-Type with boundary
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      setThumbnailPreview(null);
+  
+      setContents([response.data, ...contents]);
+      resetForm();
       setIsAdding(false);
       alert("Content added successfully!");
     } catch (err) {
       console.error("Error adding content:", err.response?.data || err.message);
-      alert(`Failed to add content: ${JSON.stringify(err.response?.data)}`);
+      alert(`Failed to add content: ${err.response?.data?.detail || err.message}`);
     }
   };
-
+  
+  const resetForm = () => {
+    setNewContent({
+      title: "",
+      description: "",
+      content_type: "video",
+      category: "workouts",
+      video_url: "",
+      blog_content: "",
+      thumbnail: null
+    });
+    setThumbnailPreview(null);
+  };
   const handleDeleteContent = async (id) => {
     if (!window.confirm("Are you sure you want to delete this content?")) return;
 

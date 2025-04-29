@@ -139,17 +139,19 @@ class ChallengeParticipantSerializer(serializers.ModelSerializer):
 # Add to your serializers.py
 
 # In serializers.py
+# serializers.py
 class EducationalContentSerializer(serializers.ModelSerializer):
-    thumbnail = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
 
     class Meta:
         model = EducationalContent
         fields = [
             'id', 'title', 'description', 'content_type', 'category',
-            'upload_date', 'thumbnail', 'video_url', 'blog_content', 'views', 'rating'
+            'upload_date', 'thumbnail_url', 'video_url', 'blog_content', 
+            'views', 'rating'
         ]
 
-    def get_thumbnail(self, obj):
+    def get_thumbnail_url(self, obj):
         if obj.thumbnail:
             return self.context['request'].build_absolute_uri(obj.thumbnail.url)
         return None
@@ -249,6 +251,8 @@ class ExerciseSerializer(serializers.ModelSerializer):
             'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+        
+
     
     def to_representation(self, instance):
         """

@@ -106,43 +106,54 @@ const Challenge = () => {
   return (
     <div className="challenges-container">
       <div className="challenges-content">
+        <div className="challenges-section">
+          <div className="Trophy-icon">
+                    <FaTrophy style={{ color: 'white' }} />
+          </div>
         <h1 className="challenges-header">Fitness Challenges</h1>
 
-        {joinMessage && <div className="join-message">{joinMessage}</div>}
+        <p className="Challenges-subheader">
+                Challenge Yourself and Find New You
+          </p>
 
-        <div className="filters">
-          <select
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Difficulties</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advance">Advance</option>
-          </select>
+{joinMessage && <div className="join-message">{joinMessage}</div>}
 
-          <select
-            value={muscleGroup}
-            onChange={(e) => setMuscleGroup(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Muscle Groups</option>
-            <option value="chest">Chest</option>
-            <option value="core">Core</option>
-            <option value="full-body">Full Body</option>
-          </select>
+<div className="filters">
+  <select
+    value={difficulty}
+    onChange={(e) => setDifficulty(e.target.value)}
+    className="filter-select"
+  >
+    <option value="all">All Difficulties</option>
+    <option value="beginner">Beginner</option>
+    <option value="intermediate">Intermediate</option>
+    <option value="advance">Advance</option>
+  </select>
 
-          <select
-            value={workoutType}
-            onChange={(e) => setWorkoutType(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Types</option>
-            <option value="strength">Strength</option>
-            <option value="cardio">Cardio</option>
-          </select>
+  <select
+    value={muscleGroup}
+    onChange={(e) => setMuscleGroup(e.target.value)}
+    className="filter-select"
+  >
+    <option value="all">All Muscle Groups</option>
+    <option value="chest">Chest</option>
+    <option value="core">Core</option>
+    <option value="full-body">Full Body</option>
+  </select>
+
+  <select
+    value={workoutType}
+    onChange={(e) => setWorkoutType(e.target.value)}
+    className="filter-select"
+  >
+    <option value="all">All Types</option>
+    <option value="strength">Strength</option>
+    <option value="cardio">Cardio</option>
+  </select>
+</div>
+
         </div>
+        
 
         <div className="challenges-grid">
           {filteredChallenges.map((challenge) => {
@@ -154,20 +165,21 @@ const Challenge = () => {
                 onClick={() => navigate(`/challenge-detail/${challenge.id}`)}
                 style={{ cursor: "pointer" }}
               >
-                <div className="card-header">
-                  <div className="card-title">
-                    <span>{challenge.title}</span>
-                    {getDifficultyIcon(challenge.difficulty)}
-                  </div>
-                  {challenge.image_url && (
-                    <img
-                      src={challenge.image_url}
-                      alt={challenge.title}
-                      className="challenge-image"
-                    />
-                  )}
-                  <p className="card-description">{challenge.description}</p>
-                </div>
+             
+          <div className="card-header">
+            {challenge.image_url && (
+              <img
+                src={challenge.image_url}
+                alt={challenge.title}
+                className="challenge-image"
+              />
+            )}
+            <div className="card-title">
+              <span>{challenge.title}</span>
+            {getDifficultyIcon(challenge.difficulty)}
+            </div>
+            <p className="card-description">{challenge.description}</p>
+              </div>
 
                 <div className="card-content">
                   <div className="details-container">
