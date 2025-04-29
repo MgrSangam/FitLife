@@ -9,6 +9,7 @@ import {
   FaFire,
   FaRunning,
   FaWeightHanging,
+  FaDownload,
 } from "react-icons/fa";
 import "./FitnessPlanDetail.css";
 
@@ -18,13 +19,13 @@ const FitnessPlanDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeDay, setActiveDay] = useState("monday");
+  const [downloading, setDownloading] = useState(false);
 
   // Fetch plan details
   useEffect(() => {
     const fetchDetail = async () => {
       try {
         const { data } = await AxiosInstance.get(`/api/fitness-plans/${id}/`);
-
         setPlan(data);
       } catch (err) {
         setError("Failed to fetch plan details");
@@ -62,6 +63,48 @@ const FitnessPlanDetail = () => {
     return days[day] || day;
   };
 
+  const handleDownloadImage = async (imageUrl, imageName) => {
+    if (!imageUrl) return;
+    
+    setDownloading(true);
+    try {
+      // Fetch the image as a blob
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Create a blob URL
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      
+      // Set the download attribute with a filename
+      const fileName = `fitness-${imageName.toLowerCase().replace(/\s+/g, '-')}.jpg`;
+      link.download = fileName;
+      link.setAttribute('download', fileName);
+      
+      // Append to the body, click it, and then remove it
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      // Fallback to the simple method if the blob approach fails
+      const fallbackLink = document.createElement('a');
+      fallbackLink.href = imageUrl;
+      fallbackLink.download = `fitness-${imageName.toLowerCase().replace(/\s+/g, '-')}.jpg`;
+      document.body.appendChild(fallbackLink);
+      fallbackLink.click();
+      document.body.removeChild(fallbackLink);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading) return <div className="loading">Loading plan details...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!plan) return <div className="error">Plan not found</div>;
@@ -88,11 +131,21 @@ const FitnessPlanDetail = () => {
         <h2 className="detail-title">{plan.name}</h2>
 
         {plan.picture && (
-          <img
-            src={plan.picture}
-            alt={plan.name}
-            className="detail-image"
-          />
+          <div className="image-container">
+            <img
+              src={plan.picture}
+              alt={plan.name}
+              className="detail-image"
+            />
+            <button 
+              onClick={() => handleDownloadImage(plan.picture, plan.name)}
+              className="download-button"
+              title="Download image"
+              disabled={downloading}
+            >
+              {downloading ? '...' : <FaDownload />}
+            </button>
+          </div>
         )}
 
         <div className="detail-meta">
@@ -138,11 +191,24 @@ const FitnessPlanDetail = () => {
                     <div className="exercise-header">
                       <h4>{exercise.exercise?.name}</h4>
                       {exercise.exercise?.image_url && (
-                        <img
-                          src={exercise.exercise.image_url}
-                          alt={exercise.exercise.name}
-                          className="exercise-image"
-                        />
+                        <div className="image-container">
+                          <img
+                            src={exercise.exercise.image_url}
+                            alt={exercise.exercise.name}
+                            className="exercise-image"
+                          />
+                          <button 
+                            onClick={() => handleDownloadImage(
+                              exercise.exercise.image_url, 
+                              exercise.exercise.name
+                            )}
+                            className="download-button"
+                            title="Download image"
+                            disabled={downloading}
+                          >
+                            <FaDownload />
+                          </button>
+                        </div>
                       )}
                     </div>
 

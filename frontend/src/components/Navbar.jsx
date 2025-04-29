@@ -40,12 +40,9 @@ export default function Navbar({ content }) {
     if (profileDropdownOpen) setProfileDropdownOpen(false);
   };
 
+  // Simplified dropdown items - only profile and logout
   const dropdownItems = [
     { icon: <FaUserCircle />, text: "Profile", path: "/profile" },
-    { icon: <FaHistory />, text: "History", path: "/workouts" },
-    { icon: <FaChartLine />, text: "Progress", path: "/progress" },
-    { icon: <FaTrophy />, text: "Achievements", path: "/achievements" },
-    { icon: <FaCog />, text: "Settings", path: "/settings" }
   ];
 
   const plansItems = [

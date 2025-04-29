@@ -4,12 +4,13 @@ import {
   FaDumbbell, 
   FaHeartbeat, 
   FaUtensils, 
-  FaChartLine,
   FaTrophy,
   FaGlassWhiskey,
   FaFire,
   FaCalendarAlt,
-  FaUsers
+  FaUsers,
+  FaExclamationTriangle,
+  FaArrowRight
 } from 'react-icons/fa';
 import AxiosInstance from './Axiosinstance';
 import './Home.css';
@@ -23,27 +24,11 @@ const HomePage = () => {
     const fetchJoinedChallenges = async () => {
       try {
         setLoading(true);
+        setError(null);
         const response = await AxiosInstance.get('/api/challenge-participants/');
-        // Ensure response.data is an array
         setJoinedChallenges(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
-        if (err.response) {
-          // Server responded with a status other than 2xx
-          if (err.response.status === 401) {
-            setError('Please log in to view your challenges');
-          } else if (err.response.status === 404) {
-            setError('Challenges endpoint not found');
-          } else {
-            setError('Failed to load challenges');
-          }
-        } else if (err.request) {
-          // No response received (e.g., network error)
-          setError('Network error: Unable to reach the server');
-        } else {
-          // Other errors
-          setError('An unexpected error occurred');
-        }
-        console.error('Error fetching challenges:', err);
+        handleApiError(err);
       } finally {
         setLoading(false);
       }
@@ -52,10 +37,46 @@ const HomePage = () => {
     fetchJoinedChallenges();
   }, []);
 
+  const handleApiError = (err) => {
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (err.response) {
+      switch (err.response.status) {
+        case 401:
+          errorMessage = 'Please log in to view your challenges';
+          break;
+        case 403:
+          errorMessage = 'You dont have permission to view this content';
+          break;
+        case 404:
+          errorMessage = 'Challenges endpoint not found';
+          break;
+        default:
+          errorMessage = err.response.data?.message || 'Failed to load challenges';
+      }
+    } else if (err.request) {
+      errorMessage = 'Network error: Unable to reach the server';
+    }
+    
+    setError(errorMessage);
+    console.error('API Error:', err);
+  };
+
   const getChallengeIcon = (title) => {
-    if (title.includes('Push-Up')) return <FaFire className="text-red-500" />;
-    if (title.includes('Hydration')) return <FaGlassWhiskey className="text-blue-400" />;
-    return <FaTrophy className="text-yellow-500" />;
+    if (title.includes('Push-Up')) return <FaFire className="challenge-icon" />;
+    if (title.includes('Hydration')) return <FaGlassWhiskey className="challenge-icon" />;
+    return <FaTrophy className="challenge-icon" />;
+  };
+
+  const calculateProgress = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    
+    const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const daysPassed = Math.ceil((today - start) / (1000 * 60 * 60 * 24));
+    
+    return Math.min(100, Math.round((daysPassed / totalDays) * 100));
   };
 
   if (loading) {
@@ -70,101 +91,124 @@ const HomePage = () => {
   if (error) {
     return (
       <div className="error-container">
+        <FaExclamationTriangle className="error-icon" />
         <p className="error-message">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="retry-button"
-        >
-          Try Again
-        </button>
+        <div className="error-actions">
+          <button 
+            onClick={() => window.location.reload()} 
+            className="retry-button"
+          >
+            Try Again
+          </button>
+          {error.includes('log in') && (
+            <Link to="/login" className="login-link">
+              Go to Login
+            </Link>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="frontpage-container">
+    <div className="home-container">
+      {/* Hero Section */}
       <div className="hero-section">
-        <div className="dumbbell-icon">
-          <FaDumbbell style={{ color: 'white' }} />
-        </div>
-        <h1>Welcome to FitLife</h1>
-        <p className="hero-text">
-          Your journey to a healthier, stronger you starts here. Join our community and transform your fitness routine.
-        </p>
-  
-        <div className="hero-buttons">
-          <Link to="/goals" className="secondary-button">
-            <FaTrophy /> Setup Goals
-          </Link>
-          <Link to="/subscriptions" className="premium-button">
-            <FaTrophy /> Premium Plans
-          </Link>
+        <div className="hero-content">
+          <h1>Your journey to a healthier, stronger you starts here</h1>
+          <p className="hero-subtext">Join our community and transform your fitness routine</p>
+          <div className="hero-buttons">
+            <Link to="/goals" className="primary-button">
+              Start Your Fitness Journey <FaArrowRight />
+            </Link>
+            <Link to="/subscriptions" className="secondary-button">
+              Set Goals <FaArrowRight />
+            </Link>
+          </div>
         </div>
       </div>
-      
-      
-      <div className="joined-challenges-section">
-  <h2 className="section-title">
-    <FaTrophy /> Active Challenges
-  </h2>
-  
-  {/* Add the conditional rendering here */}
-  {joinedChallenges.length === 0 ? (
-    <div className="no-challenges">
-      <p>You haven't joined any challenges yet.</p>
-      <Link to="/challenges" className="browse-link">
-        Browse Challenges
-      </Link>
-    </div>
-  ) : (
-    <div className="challenges-grid">
-      {joinedChallenges.map(challenge => (
-        <div key={challenge.id} className="challenge-card">
-          <div className="challenge-header">
-            <div className="challenge-icon">
-              {getChallengeIcon(challenge.title)}
+
+      {/* Activities Section */}
+      <div className="section">
+        <h2 className="section-title">
+          <FaCalendarAlt /> Your Activities
+        </h2>
+        <div className="activities-grid">
+          {/* Placeholder for activities - you can replace with real data */}
+          <div className="activity-card">
+            <div className="activity-icon">
+              <FaDumbbell />
             </div>
-            <h3 className="challenge-title">{challenge.title}</h3>
+            <div className="activity-info">
+              <h3>Today's Workout</h3>
+              <p>Upper Body Strength Training</p>
+            </div>
           </div>
-          
-          <div className="challenge-details">
-            <p>
-              <FaCalendarAlt /> {challenge.duration} days
-            </p>
-            <p>
-              <FaUsers /> {challenge.participants} participants
-            </p>
+          <div className="activity-card">
+            <div className="activity-icon">
+              <FaUtensils />
+            </div>
+            <div className="activity-info">
+              <h3>Meal Plan</h3>
+              <p>High Protein Diet</p>
+            </div>
           </div>
         </div>
-      ))}
-    </div>
-  )}
-</div>
-      {/* Features Section */}
-      <div className="features-section">
-        <div className="feature-card">
-          <div className="feature-icon">
-            <FaHeartbeat />
-          </div>
-          <h3>Workout Videos</h3>
-          <p>Access workout vidoes to enhance your knowledge.</p>
-        </div>
+      </div>
+
+      {/* Challenges Section */}
+      <div className="section">
+        <h2 className="section-title">
+          <FaCalendarAlt /> Your Challenges
+        </h2>
         
-        <div className="feature-card">
-          <div className="feature-icon">
-            <FaUtensils />
+        {joinedChallenges.length === 0 ? (
+          <div className="no-challenges">
+            <p>You haven't joined any challenges yet.</p>
+            <Link to="/challenges" className="browse-link">
+              Browse Challenges <FaArrowRight />
+            </Link>
           </div>
-          <h3>Nutrition Guidance</h3>
-          <p>Get meal plans and nutrition advice to complement your fitness routine.</p>
-        </div>
-        
-        <div className="feature-card">
-          <div className="feature-icon">
-            <FaTrophy />
+        ) : (
+          <div className="challenges-grid">
+            {joinedChallenges.map(challenge => {
+              const progress = calculateProgress(challenge.start_date, challenge.end_date);
+              
+              return (
+                <div key={challenge.id} className="challenge-card">
+                  <div className="challenge-header">
+                    {getChallengeIcon(challenge.title)}
+                    <h3 className="challenge-title">{challenge.title}</h3>
+                  </div>
+                  
+                  <div className="challenge-progress">
+                    <div className="progress-text">
+                      <span>Day {Math.ceil(progress/100 * challenge.duration)} of {challenge.duration}</span>
+                      <span>{progress}% complete</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div className="challenge-details">
+                    <p>{challenge.description || 'Complete daily tasks to finish this challenge'}</p>
+                  </div>
+                  
+                  <Link 
+                    to={`/challenge-detail/${challenge.id}`}
+                    className="view-details-link"
+                  >
+                    View Details <FaArrowRight />
+                  </Link>
+                </div>
+              );
+            })}
           </div>
-          <h3>Challenges</h3>
-          <p>Participate in Challenges to Test Your Self</p>
-        </div>
+        )}
       </div>
     </div>
   );

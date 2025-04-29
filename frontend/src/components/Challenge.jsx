@@ -69,7 +69,7 @@ const Challenge = () => {
       setJoiningId(challengeId);
       const { data } = await AxiosInstance.post(
         "/api/challenge-participants/",
-        { challenge: challengeId }
+        { challenge_id: challengeId }  // Changed from 'challenge' to 'challenge_id'
       );
       setJoinMessage("Successfully joined the challenge!");
       setJoinedIds((prev) => [...prev, challengeId]);

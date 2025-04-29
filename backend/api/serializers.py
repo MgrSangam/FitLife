@@ -122,17 +122,26 @@ from rest_framework.fields import CurrentUserDefault
 from .models import ChallengeParticipant
 
 class ChallengeParticipantSerializer(serializers.ModelSerializer):
-    challenge = ChallengeSerializer(read_only=True)
-    # 1) Hide the `user` field—auto-populate it from request.user
+    challenge_id = serializers.IntegerField(write_only=True)  # Explicitly declare as write-only
+    challenge = ChallengeSerializer(read_only=True)  # Keep read-only version
     user = serializers.HiddenField(default=CurrentUserDefault())
-    # 2) Make the join date read-only
     date_joined = serializers.DateField(read_only=True)
 
     class Meta:
         model = ChallengeParticipant
-        fields = ['user', 'challenge', 'date_joined']
+        fields = ['user', 'challenge', 'challenge_id', 'date_joined']
 
-        
+    def create(self, validated_data):
+        # Get challenge_id from validated data
+        challenge_id = validated_data.pop('challenge_id')
+        try:
+            challenge = Challenge.objects.get(id=challenge_id)
+            return ChallengeParticipant.objects.create(
+                user=validated_data['user'],
+                challenge=challenge
+            )
+        except Challenge.DoesNotExist:
+            raise serializers.ValidationError("Challenge does not exist")
 
 # Add to your existing serializers.py
 
@@ -499,3 +508,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user.is_instructor = True
         user.save()
         return user
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Add any custom representation logic here
+        return representation
