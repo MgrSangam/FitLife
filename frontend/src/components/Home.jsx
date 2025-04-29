@@ -8,7 +8,8 @@ import {
   FaTrophy,
   FaGlassWhiskey,
   FaFire,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaUsers
 } from 'react-icons/fa';
 import AxiosInstance from './Axiosinstance';
 import './Home.css';
@@ -22,40 +23,8 @@ const HomePage = () => {
     const fetchJoinedChallenges = async () => {
       try {
         setLoading(true);
-        // First get the user's participations
-        const participationsResponse = await AxiosInstance.get('/api/challenge-participants/');
-        
-        // Then fetch details for each challenge
-        const challengesData = await Promise.all(
-          participationsResponse.data.map(participation => 
-            AxiosInstance.get(`/api/challenges/${participation.challenge}/`)
-          )
-        );
-        
-        // Combine participation data with challenge details
-        const challengesWithProgress = challengesData.map((res, index) => {
-          const challenge = res.data;
-          const participation = participationsResponse.data[index];
-          const startDate = new Date(challenge.start_date);
-          const endDate = new Date(challenge.end_date);
-          const today = new Date();
-          
-          // Calculate progress percentage
-          const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-          const daysPassed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-          const progress = Math.min(100, Math.max(0, Math.round((daysPassed / totalDays) * 100)));
-          
-          return {
-            ...challenge,
-            join_id: participation.id,
-            date_joined: participation.date_joined,
-            progress,
-            current_day: daysPassed + 1, // Adding 1 to make it 1-based
-            total_days: totalDays
-          };
-        });
-        
-        setJoinedChallenges(challengesWithProgress);
+        const response = await AxiosInstance.get('/api/challenges/joined/');
+        setJoinedChallenges(response.data);
       } catch (err) {
         setError("Failed to load your challenges");
         console.error("Error fetching challenges:", err);
@@ -100,7 +69,7 @@ const HomePage = () => {
     <div className="frontpage-container">
       <div className="hero-section">
         <div className="dumbbell-icon">
-          <FaDumbbell />
+          <FaDumbbell style={{ color: 'white' }} />
         </div>
         <h1>Welcome to FitLife</h1>
         <p className="hero-text">
@@ -108,21 +77,19 @@ const HomePage = () => {
         </p>
   
         <div className="hero-buttons">
-          
-        <Link to="/goals" className="secondary-button">
+          <Link to="/goals" className="secondary-button">
             <FaTrophy /> Setup Goals
           </Link>
-
           <Link to="/subscriptions" className="premium-button">
             <FaTrophy /> Premium Plans
           </Link>
         </div>
       </div>
       
-      {/* Joined Challenges Section */}
+      Joined Challenges Section
       <div className="joined-challenges-section">
         <h2 className="section-title">
-          <FaTrophy /> Your Challenges
+          <FaTrophy /> Active Challenges
         </h2>
         
         {joinedChallenges.length === 0 ? (
@@ -145,27 +112,19 @@ const HomePage = () => {
                 
                 <div className="challenge-details">
                   <p>
-                    <FaCalendarAlt /> Day {challenge.current_day} of {challenge.total_days}
+                    <FaCalendarAlt /> {challenge.duration} days
                   </p>
-                  {challenge.title.includes('Push-Up') && (
-                    <p>{challenge.current_day * 2} push-ups today</p>
-                  )}
-                  {challenge.title.includes('Hydration') && (
-                    <p>{challenge.current_day} glasses of water per day</p>
-                  )}
+                  <p>
+                    <FaUsers /> {challenge.participants} participants
+                  </p>
                 </div>
                 
-                <div className="progress-container">
-                  <div className="progress-bar" style={{ width: `${challenge.progress}%` }}></div>
-                </div>
-                <p className="progress-text">{challenge.progress}% complete</p>
-                
-                <Link 
+                {/* <Link 
                   to={`/challenge-detail/${challenge.id}`} 
                   className="view-details-button"
                 >
                   View Details
-                </Link>
+                </Link> */}
               </div>
             ))}
           </div>
@@ -192,14 +151,14 @@ const HomePage = () => {
         
         <div className="feature-card">
           <div className="feature-icon">
-            <FaChartLine />
+            <FaTrophy />
           </div>
-          <h3>Progress Tracking</h3>
-          <p>Track your workouts, measurements, and achievements to stay motivated.</p>
+          <h3>Challenges</h3>
+          <p>Participate in Challenges to Test Your Self</p>
         </div>
       </div>
     </div>
   );
 };
 
-export default HomePage;              
+export default HomePage;

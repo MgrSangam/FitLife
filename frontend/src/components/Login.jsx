@@ -180,6 +180,11 @@ const Login = () => {
               <span className="field-error">{errors.password}</span>
             )}
           </div>
+          <div className="forgot-password-link">
+            <Link to="/password-reset" className="forgot-password-text">
+              Forgot Password?
+            </Link>
+            </div>
 
           <button
             type="submit"

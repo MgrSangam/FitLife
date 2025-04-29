@@ -158,10 +158,10 @@ class EducationalContentViewSet(viewsets.ModelViewSet):
     serializer_class = EducationalContentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]
-        return super().get_permissions()
+    # def get_permissions(self):
+    #     if self.action in ['create', 'update', 'partial_update', 'destroy']:
+    #         return [IsAdminUser()]
+    #     return super().get_permissions()
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -187,6 +187,15 @@ class EducationalContentViewSet(viewsets.ModelViewSet):
         return Response({'status': 'rating updated'})
     
 
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]  # Keep admin-only for update/delete
+        return [IsAuthenticated()]  # Allow authenticated users to create
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
 
 #
 
@@ -310,7 +319,7 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         return subscription
 
 
-
+import json
 from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import FitnessPlan, FitnessPlanExercise
@@ -451,7 +460,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 # views.py
 from rest_framework import viewsets
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, AllowAny
 from .models import CustomUser
 from .serializers import CustomUserSerializer
 
@@ -460,5 +469,6 @@ from rest_framework.permissions import IsAuthenticated  # or AllowAny
 
 class InstructorViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.filter(is_instructor=True)
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAuthenticated]  # Less restrictive than IsAdminUser
+    permission_classes = [AllowAny]  # Less restrictive than IsAdminUser

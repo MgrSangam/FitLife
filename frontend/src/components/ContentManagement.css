@@ -216,3 +216,10 @@ input[type="file"] {
   font-size: 12px;
   margin-top: 4px;
 }
+
+/* ContentManagement.css */
+.content-image {
+  width: 50px;
+  height: auto;
+  object-fit: cover;
+}

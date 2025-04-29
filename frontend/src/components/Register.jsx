@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AxiosInstance from "./Axiosinstance";
+import { FaDumbbell } from "react-icons/fa";
 import "./Register.css";
 
 const Register = () => {
   const navigate = useNavigate();
-
 
   const [formData, setFormData] = useState({
     username: "",
@@ -65,7 +65,11 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-card">
-        <h2>Create Your Account</h2>
+        <h1 className="register-title">
+          <FaDumbbell className="dumbbell-icon" /> FitLife
+        </h1>
+        <h2 className="create-account-title">Create New Account</h2>
+        
         {errors.non_field_errors && (
           <div className="error-message">{errors.non_field_errors}</div>
         )}
@@ -97,7 +101,6 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Add similar error display for other fields */}
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -146,13 +149,17 @@ const Register = () => {
             {errors.password2 && <span className="error">{errors.password2}</span>}
           </div>
 
-          <button 
-            type="submit" 
-            className="register-button"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Registering..." : "Register"}
-          </button>
+          <div className="form-group">
+            <button 
+              type="submit" 
+              className="register-button"
+              disabled={isSubmitting}
+            >
+              <span className="button-text">
+                {isSubmitting ? "Registering..." : "Register"}
+              </span>
+            </button>
+          </div>
         </form>
 
         <div className="login-link">

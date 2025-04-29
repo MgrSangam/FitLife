@@ -445,11 +445,9 @@ class FitnessPlanExercise(models.Model):
         choices=DAYS_OF_WEEK
     )
     sets = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)],
         default=3
     )
     reps = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)],
         default=10
     )
     duration_minutes = models.PositiveIntegerField(

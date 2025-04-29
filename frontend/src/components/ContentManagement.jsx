@@ -20,21 +20,21 @@ const ContentManagement = () => {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [activeTab, setActiveTab] = useState("video");
 
-  // In ContentManagement.js, change the fetch endpoint
-useEffect(() => {
-  const fetchContents = async () => {
-    try {
-      const response = await AxiosInstance.get("/education/"); // Changed from "/api/education/"
-      setContents(response.data);
-    } catch (err) {
-      setError("Failed to fetch content");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  fetchContents();
-}, []);
+  useEffect(() => {
+    const fetchContents = async () => {
+      try {
+        const response = await AxiosInstance.get("/education/");
+        console.log("Fetched contents:", response.data);
+        setContents(response.data);
+      } catch (err) {
+        setError("Failed to fetch content");
+        console.error("Error fetching contents:", err.response?.data || err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchContents();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,14 +44,22 @@ useEffect(() => {
   const handleThumbnailChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setNewContent(prev => ({ ...prev, thumbnail: file }));
-      
-      // Create preview
+      console.log("Selected file:", file);
+      setNewContent(prev => {
+        const updated = { ...prev, thumbnail: file };
+        console.log("Updated newContent:", updated);
+        return updated;
+      });
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setThumbnailPreview(reader.result);
       };
       reader.readAsDataURL(file);
+    } else {
+      console.log("No file selected");
+      setNewContent(prev => ({ ...prev, thumbnail: null }));
+      setThumbnailPreview(null);
     }
   };
 
@@ -67,23 +75,30 @@ useEffect(() => {
       formData.append("description", newContent.description);
       formData.append("content_type", newContent.content_type);
       formData.append("category", newContent.category);
-      
+
       if (newContent.content_type === "video") {
         formData.append("video_url", newContent.video_url);
       } else {
         formData.append("blog_content", newContent.blog_content);
       }
-      
+
       if (newContent.thumbnail) {
+        console.log("Thumbnail file:", newContent.thumbnail);
+        console.log("Thumbnail name:", newContent.thumbnail.name);
+        console.log("Thumbnail size:", newContent.thumbnail.size);
+        console.log("Thumbnail type:", newContent.thumbnail.type);
         formData.append("thumbnail", newContent.thumbnail);
+      } else {
+        console.log("No thumbnail selected");
       }
 
-      const response = await AxiosInstance.post("/education/", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
+      for (let [key, value] of formData.entries()) {
+        console.log(`FormData: ${key} =`, value);
+      }
+
+      const response = await AxiosInstance.post("/education/", formData);
+      console.log("Response data:", response.data);
+
       setContents([response.data, ...contents]);
       setNewContent({
         title: "",
@@ -98,8 +113,8 @@ useEffect(() => {
       setIsAdding(false);
       alert("Content added successfully!");
     } catch (err) {
-      alert("Failed to add content");
-      console.error(err);
+      console.error("Error adding content:", err.response?.data || err.message);
+      alert(`Failed to add content: ${JSON.stringify(err.response?.data)}`);
     }
   };
 
@@ -111,8 +126,8 @@ useEffect(() => {
       setContents(contents.filter(content => content.id !== id));
       alert("Content deleted successfully!");
     } catch (err) {
+      console.error("Error deleting content:", err.response?.data || err.message);
       alert("Failed to delete content");
-      console.error(err);
     }
   };
 
@@ -131,14 +146,14 @@ useEffect(() => {
       </div>
 
       <div className="tabs">
-        <button 
-          className={activeTab === "video" ? "active" : ""} 
+        <button
+          className={activeTab === "video" ? "active" : ""}
           onClick={() => setActiveTab("video")}
         >
           <FaVideo /> Videos
         </button>
-        <button 
-          className={activeTab === "blog" ? "active" : ""} 
+        <button
+          className={activeTab === "blog" ? "active" : ""}
           onClick={() => setActiveTab("blog")}
         >
           <FaFileAlt /> Blogs
@@ -153,7 +168,7 @@ useEffect(() => {
               <label>Content Type*</label>
               <select
                 name="content_type"
-                value={newContent.content_type || "video"}
+                value={newContent.content_type}
                 onChange={handleInputChange}
               >
                 <option value="video">Video</option>
@@ -164,7 +179,7 @@ useEffect(() => {
               <label>Category*</label>
               <select
                 name="category"
-                value={newContent.category || "workouts"}
+                value={newContent.category}
                 onChange={handleInputChange}
               >
                 <option value="workouts">Workouts</option>
@@ -176,7 +191,7 @@ useEffect(() => {
               <input
                 type="text"
                 name="title"
-                value={newContent.title || ""}
+                value={newContent.title}
                 onChange={handleInputChange}
                 placeholder="Content Title"
                 required
@@ -186,24 +201,24 @@ useEffect(() => {
               <label>Description*</label>
               <textarea
                 name="description"
-                value={newContent.description || ""}
+                value={newContent.description}
                 onChange={handleInputChange}
                 placeholder="Content description"
                 rows={3}
                 required
               />
             </div>
-            
+
             {newContent.content_type === "video" ? (
               <div className="form-group full-width">
                 <label>Video URL*</label>
                 <input
                   type="text"
                   name="video_url"
-                  value={newContent.video_url || ""}
+                  value={newContent.video_url}
                   onChange={handleInputChange}
                   placeholder="Video URL"
-                  required={newContent.content_type === "video"}
+                  required
                 />
               </div>
             ) : (
@@ -211,18 +226,19 @@ useEffect(() => {
                 <label>Blog Content*</label>
                 <textarea
                   name="blog_content"
-                  value={newContent.blog_content || ""}
+                  value={newContent.blog_content}
                   onChange={handleInputChange}
                   placeholder="Blog content"
                   rows={6}
-                  required={newContent.content_type === "blog"}
+                  required
                 />
               </div>
             )}
-            
+
             <div className="form-group full-width">
               <label>Thumbnail</label>
               <input
+                key={newContent.thumbnail ? newContent.thumbnail.name : "thumbnail"}
                 type="file"
                 name="thumbnail"
                 onChange={handleThumbnailChange}
@@ -230,9 +246,9 @@ useEffect(() => {
               />
               {thumbnailPreview && (
                 <div className="image-preview">
-                  <img 
-                    src={thumbnailPreview} 
-                    alt="Preview" 
+                  <img
+                    src={thumbnailPreview}
+                    alt="Preview"
                     className="preview-image"
                   />
                 </div>
@@ -240,10 +256,13 @@ useEffect(() => {
             </div>
           </div>
           <div className="form-actions">
-            <button className="cancel-button" onClick={() => {
-              setIsAdding(false);
-              setThumbnailPreview(null);
-            }}>
+            <button
+              className="cancel-button"
+              onClick={() => {
+                setIsAdding(false);
+                setThumbnailPreview(null);
+              }}
+            >
               Cancel
             </button>
             <button className="submit-button" onClick={handleAddContent}>
@@ -273,19 +292,18 @@ useEffect(() => {
                 <tr key={content.id}>
                   <td>
                     {content.thumbnail && (
-                      <img 
-                      src={content.thumbnail_url} 
-                      alt={content.title} 
-                      className="content-image"
-                    />
-                    
+                      <img
+                        src={content.thumbnail}
+                        alt={content.title}
+                        className="content-image"
+                      />
                     )}
                   </td>
                   <td>{content.title}</td>
                   <td className="capitalize">{content.content_type}</td>
                   <td className="capitalize">{content.category}</td>
                   <td>{content.views}</td>
-                  <td>{content.rating?.toFixed(1) || 'N/A'}</td>
+                  <td>{content.rating?.toFixed(1) || "N/A"}</td>
                   <td className="actions">
                     <button className="edit-button" title="Edit">
                       <FaEdit />

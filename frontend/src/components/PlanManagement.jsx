@@ -156,12 +156,12 @@ const PlanManagement = () => {
       const exercisesData = newFitnessPlan.exercises.map(ex => ({
         exercise: Number(ex.exercise_id),
         day: ex.day,
-        sets: Number(ex.sets),
-        reps: Number(ex.reps),
+        sets: ex.sets === "" ? 0 : Number(ex.sets),
+        reps: ex.reps === "" ? 0 : Number(ex.reps),
         duration_minutes: ex.duration_minutes ? Number(ex.duration_minutes) : null,
         order: ex.order || 0
-      }));
-      formData.append('exercises', JSON.stringify(exercisesData));
+    }));
+    formData.append('exercises', JSON.stringify(exercisesData));
   
       const response = await AxiosInstance.post("api/fitness-plans/", formData, {
         headers: {

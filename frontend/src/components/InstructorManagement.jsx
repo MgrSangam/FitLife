@@ -24,8 +24,10 @@ const InstructorManagement = () => {
   const fetchInstructors = async () => {
     try {
       const response = await AxiosInstance.get("/instructors/");
+      console.log("Fetched instructors:", response.data); // Log the response
       setInstructors(response.data);
     } catch (error) {
+      console.error("Error fetching instructors:", error.response?.data || error.message);
       showNotification("Failed to fetch instructors", "error");
     }
   };
@@ -41,18 +43,28 @@ const InstructorManagement = () => {
   };
 
   const handleAddInstructor = async () => {
-    if (!newInstructor.username || !newInstructor.email || !newInstructor.password) {
-      showNotification("Username, email, and password are required", "error");
+    if (
+      !newInstructor.username ||
+      !newInstructor.email ||
+      !newInstructor.password ||
+      !["trainer", "nutritionist"].includes(newInstructor.specialization)
+    ) {
+      showNotification("Username, email, password, and a valid specialization are required", "error");
       return;
     }
   
+    const payload = {
+      ...newInstructor,
+      specialization: newInstructor.specialization || null, // Send null if empty
+    };
+  
     try {
-      console.log("Instructor to add:", newInstructor); // Check the object before sending
-      await AxiosInstance.post("/instructors/", newInstructor);
-      fetchInstructors();  // Refresh list of instructors
-      setNewInstructor({ 
+      console.log("Instructor to add:", payload);
+      await AxiosInstance.post("/instructors/", payload);
+      fetchInstructors();
+      setNewInstructor({
         username: "",
-        email: "", 
+        email: "",
         password: "",
         contact: "",
         experience: "",
@@ -62,11 +74,10 @@ const InstructorManagement = () => {
       setIsAdding(false);
       showNotification("Instructor added successfully!", "success");
     } catch (error) {
-      console.error("Error adding instructor:", error);  // Log the error for debugging
-      showNotification("Failed to add instructor", "error");
+      console.error("Error adding instructor:", error.response?.data);
+      showNotification(`Failed to add instructor: ${JSON.stringify(error.response?.data)}`, "error");
     }
   };
-  
 
   const handleDeleteInstructor = async (id) => {
     try {

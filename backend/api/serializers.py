@@ -352,16 +352,8 @@ class FitnessPlanSerializer(serializers.ModelSerializer):
             return self.context['request'].build_absolute_uri(obj.picture.url)
         return None
     def create(self, validated_data):
-        exercises_data = []
-        if 'exercises' in validated_data:
-            # Handle exercises if they come as JSON string
-            if isinstance(validated_data['exercises'], str):
-                exercises_data = json.loads(validated_data.pop('exercises'))
-            else:
-                exercises_data = validated_data.pop('exercises', [])
-        
+        exercises_data = validated_data.pop('exercises', [])
         fitness_plan = FitnessPlan.objects.create(**validated_data)
-        
         for exercise_data in exercises_data:
             FitnessPlanExercise.objects.create(
                 fitness_plan=fitness_plan,
@@ -372,7 +364,6 @@ class FitnessPlanSerializer(serializers.ModelSerializer):
                 duration_minutes=exercise_data.get('duration_minutes'),
                 order=exercise_data.get('order', 0)
             )
-        
         return fitness_plan
 
 class MealFoodSerializer(serializers.ModelSerializer):
@@ -474,12 +465,22 @@ class UserSerializer(serializers.ModelSerializer):
 from rest_framework import serializers
 from .models import CustomUser
 
+# serializers.py
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email', 'password', 'contact', 'experience', 'bio', 'specialization']
-        extra_kwargs = {'password': {'write_only': True}}
-
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True},
+            'username': {'required': True},
+            # Make other fields optional
+            'contact': {'required': False, 'allow_blank': True},
+            'experience': {'required': False, 'allow_blank': True},
+            'bio': {'required': False, 'allow_blank': True},
+            'specialization': {'required': False, 'default': 'trainer'}
+        }
+        
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
             validated_data['username'],

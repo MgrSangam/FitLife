@@ -23,7 +23,7 @@ import AdminPage from './components/Admin'
 
 function App() {
   const location = useLocation()
-  const noNavbar = location.pathname === "/register" || location.pathname === "/" || location.pathname === "/reset" || location.pathname ==='/password-reset'
+  const noNavbar = location.pathname === "/register" || location.pathname === "/" || location.pathname === "/reset" || location.pathname ==='/password-reset' || location.pathname === '/admin'
   return (
     <>
 
@@ -35,6 +35,9 @@ function App() {
          <Route path='/reset' element={< PasswordResetRequest/>} />
          <Route path='/password-reset' element={< PasswordReset/>} />
          
+         content = {
+          <Route path='/admin' element={<AdminPage/>} />
+         }
 
       </Routes>
 
@@ -56,7 +59,7 @@ function App() {
                   <Route path='/mealsplan' element={<MealPlan/>} />
                   <Route path='/fitnessplan-detail/:id' element={<FitnessPlanDetail/>} />
                   <Route path='/mealplan-detail/:id' element={<MealPlanDetail/>} />
-                  <Route path='/admin' element={<AdminPage/>} />
+                  
 
               </Route>
              

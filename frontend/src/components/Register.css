@@ -1,117 +1,174 @@
+/* Main Container */
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
 }
 
+/* Card Styles */
 .register-card {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 40px;
   width: 100%;
   max-width: 500px;
-}
-
-h2 {
-  margin: 0 0 0.5rem 0;
-  color: #1f2937;
   text-align: center;
 }
 
-.register-subtitle {
-  color: #6b7280;
-  text-align: center;
-  margin-bottom: 2rem;
+/* Title Styles */
+.register-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  font-size: 2.5rem;
+  color: #4c3398;
+  margin-bottom: 5px;
 }
 
+.dumbbell-icon {
+  font-size: 2.5rem;
+  color: #6b46c1;
+}
+
+.create-account-title {
+  font-size: 1.5rem;
+  color: #4a5568;
+  margin-bottom: 30px;
+  font-weight: 500;
+}
+
+/* Form Styles */
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 20px;
 }
 
 .form-row {
   display: flex;
-  gap: 1rem;
-}
-
-.form-row .form-group {
-  flex: 1;
+  gap: 20px;
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  flex: 1;
+  text-align: left;
 }
 
-label {
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #4a5568;
   font-weight: 500;
-  color: #374151;
-  font-size: 0.9rem;
 }
 
-input {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
 }
 
-input:focus {
+.form-group input:focus {
+  border-color: #6b46c1;
+  box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.2);
   outline: none;
-  border-color: #6366f1;
 }
 
+/* Button Styles */
 .register-button {
-  background-color: #6366f1;
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 0.75rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 0.5rem;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .register-button:hover {
-  background-color: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
+.register-button:disabled {
+  background: #cbd5e0;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.button-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Link Styles */
 .login-link {
-  margin-top: 1.5rem;
-  text-align: center;
-  color: #6b7280;
+  margin-top: 25px;
+  color: #4a5568;
 }
 
 .login-link a {
-  color: #6366f1;
+  color: #6b46c1;
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
+  transition: color 0.3s;
 }
 
 .login-link a:hover {
+  color: #4c3398;
   text-decoration: underline;
 }
 
-.error {
-  color: #dc3545;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+/* Error Styles */
+.error-message {
+  color: #e53e3e;
+  background-color: #fff5f5;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
 }
 
-.error-message {
-  color: #dc3545;
-  background: #f8d7da;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  border: 1px solid #f5c6cb;
+.error {
+  color: #e53e3e;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  display: block;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+  .register-card {
+    padding: 30px 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .register-title {
+    font-size: 2rem;
+  }
+  
+  .create-account-title {
+    font-size: 1.3rem;
+  }
 }
