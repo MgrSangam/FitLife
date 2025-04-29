@@ -112,7 +112,13 @@ class ChallengeView(viewsets.ModelViewSet):
     serializer_class = ChallengeSerializer
     permission_classes = [permissions.AllowAny]
     
-
+# In your views.py
+class ChallengeParticipantViewSet(viewsets.ModelViewSet):
+    serializer_class = ChallengeParticipantSerializer
+    
+    def get_queryset(self):
+        # Return only challenges joined by the current user
+        return ChallengeParticipant.objects.filter(user=self.request.user)
 
 
 # views.py

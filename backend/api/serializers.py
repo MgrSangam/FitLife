@@ -122,6 +122,7 @@ from rest_framework.fields import CurrentUserDefault
 from .models import ChallengeParticipant
 
 class ChallengeParticipantSerializer(serializers.ModelSerializer):
+    challenge = ChallengeSerializer(read_only=True)
     # 1) Hide the `user` field—auto-populate it from request.user
     user = serializers.HiddenField(default=CurrentUserDefault())
     # 2) Make the join date read-only

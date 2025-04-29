@@ -23,16 +23,32 @@ const HomePage = () => {
     const fetchJoinedChallenges = async () => {
       try {
         setLoading(true);
-        const response = await AxiosInstance.get('/api/challenges/joined/');
-        setJoinedChallenges(response.data);
+        const response = await AxiosInstance.get('/api/challenge-participants/');
+        // Ensure response.data is an array
+        setJoinedChallenges(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
-        setError("Failed to load your challenges");
-        console.error("Error fetching challenges:", err);
+        if (err.response) {
+          // Server responded with a status other than 2xx
+          if (err.response.status === 401) {
+            setError('Please log in to view your challenges');
+          } else if (err.response.status === 404) {
+            setError('Challenges endpoint not found');
+          } else {
+            setError('Failed to load challenges');
+          }
+        } else if (err.request) {
+          // No response received (e.g., network error)
+          setError('Network error: Unable to reach the server');
+        } else {
+          // Other errors
+          setError('An unexpected error occurred');
+        }
+        console.error('Error fetching challenges:', err);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchJoinedChallenges();
   }, []);
 
@@ -86,49 +102,32 @@ const HomePage = () => {
         </div>
       </div>
       
-      Joined Challenges Section
+      
       <div className="joined-challenges-section">
         <h2 className="section-title">
           <FaTrophy /> Active Challenges
         </h2>
         
-        {joinedChallenges.length === 0 ? (
-          <div className="no-challenges">
-            <p>You haven't joined any challenges yet.</p>
-            <Link to="/challenges" className="browse-link">
-              Browse Challenges
-            </Link>
-          </div>
-        ) : (
-          <div className="challenges-grid">
-            {joinedChallenges.map(challenge => (
-              <div key={challenge.id} className="challenge-card">
-                <div className="challenge-header">
-                  <div className="challenge-icon">
-                    {getChallengeIcon(challenge.title)}
-                  </div>
-                  <h3 className="challenge-title">{challenge.title}</h3>
-                </div>
-                
-                <div className="challenge-details">
-                  <p>
-                    <FaCalendarAlt /> {challenge.duration} days
-                  </p>
-                  <p>
-                    <FaUsers /> {challenge.participants} participants
-                  </p>
-                </div>
-                
-                {/* <Link 
-                  to={`/challenge-detail/${challenge.id}`} 
-                  className="view-details-button"
-                >
-                  View Details
-                </Link> */}
-              </div>
-            ))}
-          </div>
-        )}
+    You have not participated in any challenge yet.
+      {joinedChallenges.map(participant => (
+        <div key={participant.id} className="challenge-card">
+          <div className="challenge-header">
+        <div className="challenge-icon">
+          {getChallengeIcon(participant.challenge.title)}
+        </div>
+        <h3 className="challenge-title">{participant.challenge.title}</h3>
+      </div>
+    
+        <div className="challenge-details">
+        <p>
+          <FaCalendarAlt /> {participant.challenge.duration} days
+        </p>
+        <p>
+          <FaUsers /> {participant.challenge.participants_count} participants
+      </p>
+    </div>
+  </div>
+))}
       </div>
       
       {/* Features Section */}
@@ -137,8 +136,8 @@ const HomePage = () => {
           <div className="feature-icon">
             <FaHeartbeat />
           </div>
-          <h3>Personalized Workouts</h3>
-          <p>Access workout plans tailored to your fitness level, goals, and preferences.</p>
+          <h3>Workout Videos</h3>
+          <p>Access workout vidoes to enhance your knowledge.</p>
         </div>
         
         <div className="feature-card">
