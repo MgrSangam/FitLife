@@ -171,7 +171,20 @@ class EducationalContentViewSet(viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context.update({"request": self.request})  # <--- Add this line
         return context
-
+    
+    @action(detail=True, methods=['post'])
+    def increment_views(self, request, pk=None):
+        content = self.get_object()
+        content.views += 1
+        content.save()
+        return Response({'status': 'views incremented'})
+    
+    @action(detail=True, methods=['post'])
+    def rate_content(self, request, pk=None):
+        content = self.get_object()
+        rating = request.data.get('rating')
+        # Add your rating logic here
+        return Response({'status': 'rating updated'})
     
 
 
@@ -308,6 +321,11 @@ class FitnessPlanViewSet(viewsets.ModelViewSet):
     serializer_class = FitnessPlanSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
     def create(self, request, *args, **kwargs):
         # Handle JSON string for exercises if needed
         if 'exercises' in request.data and isinstance(request.data['exercises'], str):

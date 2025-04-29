@@ -71,7 +71,6 @@ const Login = () => {
     }
   };
 
-  // In the handleSubmit function within the Login component
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -102,29 +101,14 @@ const Login = () => {
         const isAdmin = user.is_superuser === true || user.is_superuser === "true";
         const isInstructor = user.is_instructor === true || user.is_instructor === "true";
   
-        // Redirect based on role hierarchy
+        // Redirect based on role
         if (isAdmin) {
           navigate("/admin", { replace: true });
         } else if (isInstructor) {
           navigate("/instructor", { replace: true });
         } else {
-          // If normal user, check if goals exist
-          try {
-            const goalsResponse = await AxiosInstance.get(`/goals/`);
-            console.log("Goals response:", goalsResponse.data);
-  
-            if (!goalsResponse.data || goalsResponse.data.length === 0) {
-              console.log("No goals found, redirecting to goals page");
-              navigate("/goals", { replace: true });
-            } else {
-              console.log("Goals found, redirecting to home page");
-              navigate("/home", { replace: true });
-            }
-          } catch (goalError) {
-            console.error("Error fetching goals:", goalError);
-            // If error fetching goals, assume no goals exist
-            navigate("/goals", { replace: true });
-          }
+          // Regular users go directly to home
+          navigate("/home", { replace: true });
         }
       } else {
         throw new Error("Invalid response from server");
@@ -145,8 +129,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-  
-  
   
   return (
     <div className="login-container">
@@ -197,9 +179,6 @@ const Login = () => {
             {errors.password && (
               <span className="field-error">{errors.password}</span>
             )}
-            <Link to="/reset" className="forgot-password">
-              Forgot Password?
-            </Link>
           </div>
 
           <button

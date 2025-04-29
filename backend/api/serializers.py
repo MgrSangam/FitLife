@@ -336,14 +336,21 @@ class FitnessPlanExerciseSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['day'] = dict(FitnessPlanExercise.DAYS_OF_WEEK).get(instance.day)
         return representation
-import json
+    
+    
+    
 class FitnessPlanSerializer(serializers.ModelSerializer):
     exercises = FitnessPlanExerciseSerializer(many=True, required=False)
+    picture_url = serializers.SerializerMethodField()
     
     class Meta:
         model = FitnessPlan
         fields = '__all__'
-
+    
+    def get_picture_url(self, obj):
+        if obj.picture:
+            return self.context['request'].build_absolute_uri(obj.picture.url)
+        return None
     def create(self, validated_data):
         exercises_data = []
         if 'exercises' in validated_data:
