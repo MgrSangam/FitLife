@@ -3,6 +3,7 @@ import { FaCheckCircle } from "react-icons/fa";
 import axiosInstance from "./Axiosinstance"; 
 import "./Subscription.css";
 
+
 const Subscription = () => {
   
   const handleSubscription = async (plan) => {
@@ -26,25 +27,7 @@ const Subscription = () => {
         <h2 className="subscription-heading-sub">Choose the perfect plan for your needs.</h2>
 
         <div className="subscription-grid">
-          {/* Basic Plan */}
-          <div className="plan-card basic-card">
-            <h2 className="subscription-type">Basic Plan</h2>
-            <h3 className="subscription-pricing">
-              <span className="money">Rs. 0</span> /month
-            </h3>
-            <div className="feature-list">
-              <span className="list-item"><FaCheckCircle /> Create Fitness Plans</span>
-              <span className="list-item"><FaCheckCircle /> Create Meal Plans</span>
-            </div>
-            <button 
-              className="action-button basic-button"
-              onClick={() => handleSubscription("basic")}
-            >
-              Active
-            </button>
-          </div>
-
-          {/* Premium Plan */}
+      
           <div className="plan-card premium-card">
             <h2 className="subscription-type">Premium Plan</h2>
             <h3 className="subscription-pricing">
@@ -64,6 +47,9 @@ const Subscription = () => {
           </div>
         </div>
       </div>
+
+
+
     </div>
   );
 };

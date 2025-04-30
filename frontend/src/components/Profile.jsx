@@ -7,7 +7,13 @@ import {
   FaCalendarAlt,
   FaWeight,
   FaRulerVertical,
-  FaEdit
+  FaEdit,
+  FaVenusMars,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaHeart,
+  FaRunning,
+  FaDumbbell
 } from 'react-icons/fa';
 import './Profile.css';
 
@@ -20,10 +26,15 @@ const Profile = () => {
     first_name: '',
     last_name: '',
     email: '',
+    phone: '',
+    gender: '',
     birthday: '',
     weight: '',
     height: '',
-    bio: ''
+    bio: '',
+    location: '',
+    fitness_goals: '',
+    preferred_workouts: ''
   });
 
   useEffect(() => {
@@ -35,10 +46,15 @@ const Profile = () => {
           first_name: response.data.first_name || '',
           last_name: response.data.last_name || '',
           email: response.data.email || '',
+          phone: response.data.phone || '',
+          gender: response.data.gender || '',
           birthday: response.data.birthday || '',
           weight: response.data.weight || '',
           height: response.data.height || '',
-          bio: response.data.bio || ''
+          bio: response.data.bio || '',
+          location: response.data.location || '',
+          fitness_goals: response.data.fitness_goals || '',
+          preferred_workouts: response.data.preferred_workouts || ''
         });
       } catch (err) {
         setError('Failed to load profile');
@@ -118,18 +134,42 @@ const Profile = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
 
             <div className="form-row">
+              <div className="form-group">
+                <label>Gender</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
               <div className="form-group">
                 <label>Birth Date</label>
                 <input
@@ -139,6 +179,9 @@ const Profile = () => {
                   onChange={handleInputChange}
                 />
               </div>
+            </div>
+
+            <div className="form-row">
               <div className="form-group">
                 <label>Weight (kg)</label>
                 <input
@@ -158,6 +201,38 @@ const Profile = () => {
                   onChange={handleInputChange}
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Location</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Fitness Goals</label>
+              <textarea
+                name="fitness_goals"
+                value={formData.fitness_goals}
+                onChange={handleInputChange}
+                rows="2"
+                placeholder="E.g., Lose weight, build muscle, improve endurance"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Preferred Workouts</label>
+              <textarea
+                name="preferred_workouts"
+                value={formData.preferred_workouts}
+                onChange={handleInputChange}
+                rows="2"
+                placeholder="E.g., Weight lifting, yoga, running"
+              />
             </div>
 
             <div className="form-group">
@@ -181,24 +256,91 @@ const Profile = () => {
             <div className="info-grid">
               <div className="info-item">
                 <FaEnvelope className="info-icon" />
-                <span>{user.email}</span>
+                <div className="info-content">
+                  <span className="info-label">Email</span>
+                  <span className="info-value">{user.email || 'Not specified'}</span>
+                </div>
               </div>
+              
+              {user.phone && (
+                <div className="info-item">
+                  <FaPhone className="info-icon" />
+                  <div className="info-content">
+                    <span className="info-label">Phone</span>
+                    <span className="info-value">{user.phone}</span>
+                  </div>
+                </div>
+              )}
+              
+              {user.gender && (
+                <div className="info-item">
+                  <FaVenusMars className="info-icon" />
+                  <div className="info-content">
+                    <span className="info-label">Gender</span>
+                    <span className="info-value">{user.gender}</span>
+                  </div>
+                </div>
+              )}
+              
               {user.birthday && (
                 <div className="info-item">
                   <FaCalendarAlt className="info-icon" />
-                  <span>{new Date(user.birthday).toLocaleDateString()}</span>
+                  <div className="info-content">
+                    <span className="info-label">Birth Date</span>
+                    <span className="info-value">
+                      {new Date(user.birthday).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               )}
+              
               {user.weight && (
                 <div className="info-item">
                   <FaWeight className="info-icon" />
-                  <span>{user.weight} kg</span>
+                  <div className="info-content">
+                    <span className="info-label">Weight</span>
+                    <span className="info-value">{user.weight} kg</span>
+                  </div>
                 </div>
               )}
+              
               {user.height && (
                 <div className="info-item">
                   <FaRulerVertical className="info-icon" />
-                  <span>{user.height} cm</span>
+                  <div className="info-content">
+                    <span className="info-label">Height</span>
+                    <span className="info-value">{user.height} cm</span>
+                  </div>
+                </div>
+              )}
+              
+              {user.location && (
+                <div className="info-item">
+                  <FaMapMarkerAlt className="info-icon" />
+                  <div className="info-content">
+                    <span className="info-label">Location</span>
+                    <span className="info-value">{user.location}</span>
+                  </div>
+                </div>
+              )}
+              
+              {user.fitness_goals && (
+                <div className="info-item">
+                  <FaHeart className="info-icon" />
+                  <div className="info-content">
+                    <span className="info-label">Fitness Goals</span>
+                    <span className="info-value">{user.fitness_goals}</span>
+                  </div>
+                </div>
+              )}
+              
+              {user.preferred_workouts && (
+                <div className="info-item">
+                  <FaRunning className="info-icon" />
+                  <div className="info-content">
+                    <span className="info-label">Preferred Workouts</span>
+                    <span className="info-value">{user.preferred_workouts}</span>
+                  </div>
                 </div>
               )}
             </div>
