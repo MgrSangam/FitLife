@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaDumbbell, FaUtensils, FaUsers, FaPhone, FaBirthdayCake } from "react-icons/fa";
+import { 
+  FaDumbbell, 
+  FaUtensils, 
+  FaUsers, 
+  FaPhone, 
+  FaBirthdayCake,
+  FaCalendarAlt,
+  FaUserTie
+} from "react-icons/fa";
 import axiosInstance from "./Axiosinstance";
 import "./Instructor.css";
 
@@ -11,178 +19,233 @@ const Instructor = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchInstructorData = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const user = JSON.parse(localStorage.getItem("user"));
+// Instructor.js - Update the fetch function
+const fetchInstructorData = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-        if (!token || !user?.is_instructor) {
-          navigate("/login", { replace: true });
-          return;
-        }
+    if (!token || !user?.is_instructor) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
-        const response = await axiosInstance.get('/instructor');
-        console.log("API Response:", response.data);  
-        setInstructorData(response.data);
-      } catch (err) {
-        setError("Failed to fetch instructor data");
-        console.error("Error fetching instructor data:", err);
-        if (err.response?.status === 403) {
-          navigate("/login", { replace: true });
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+    const response = await axiosInstance.get('/api/instructor/dashboard/');
+    
+    // Transform clients data if needed
+    const clients = response.data.clients || [];
+    
+    setInstructorData({
+      ...response.data,
+      clients: clients.map(client => ({
+        ...client,
+        // Ensure all required fields exist
+        username: client.username || '',
+        email: client.email || '',
+        age: client.age || null
+      }))
+    });
+  } catch (err) {
+    const errorMessage = err.response?.data?.error || 
+                       err.message || 
+                       "Failed to fetch instructor data";
+    setError(errorMessage);
+    console.error("Error details:", err.response?.data);
+    
+    if (err.response?.status === 403) {
+      navigate("/login", { replace: true });
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchInstructorData();
   }, [navigate]);
 
+  const handleClientClick = (clientId) => {
+    navigate(`/clients/${clientId}`);
+  };
+
   if (loading) {
     return (
-      <div className="loading-spinner">
-        <div className="spinner"></div>
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading your dashboard...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-message">
-        <strong>Error: </strong>
-        <span>{error}</span>
+      <div className="error-container">
+        <div className="error-message">
+          <strong>Error: </strong>
+          <span>{error}</span>
+        </div>
+        <button 
+          className="retry-button"
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
-  if (!instructorData) {
-    return null;
-  }
+  if (!instructorData) return null;
 
   return (
-    <div className="instructor-container">
-      <div className="profile-section">
-        <div className="card">
-          <div className="card-header">
-            {instructorData.specialization === "trainer" ? (
-              <FaDumbbell className="card-icon" />
-            ) : (
-              <FaUtensils className="card-icon" />
-            )}
-            <div>
-              <h2 className="card-title">{instructorData.username || instructorData.email}</h2>
-              <p className="card-subtitle">
-                {instructorData.specialization} - {instructorData.experience}
+    <div className="instructor-dashboard">
+      <section className="instructor-profile">
+        <div className="profile-card">
+          <header className="profile-header">
+            <div className="profile-icon">
+              {instructorData.specialization === "trainer" ? (
+                <FaDumbbell />
+              ) : (
+                <FaUtensils />
+              )}
+            </div>
+            <div className="profile-info">
+              <h2>{instructorData.username || instructorData.email}</h2>
+              <p className="specialization">
+                {instructorData.specialization} • {instructorData.experience}
               </p>
             </div>
-          </div>
-          
+          </header>
+
           {instructorData.bio && (
-            <div className="mb-4">
-              <h3 className="font-semibold text-lg mb-2">About Me</h3>
-              <p className="text-gray-600">{instructorData.bio}</p>
+            <div className="bio-section">
+              <h3>About Me</h3>
+              <p>{instructorData.bio}</p>
             </div>
           )}
 
-          <div className="stats-grid">
-            {instructorData.contact && (
-              <div className="stat-item">
-                <FaPhone className="stat-icon" />
-                <div>
-                  <p className="stat-label">Contact</p>
-                  <p className="stat-value">{instructorData.contact}</p>
+          <div className="stats-container">
+            <div className="stats-grid">
+              {instructorData.contact && (
+                <div className="stat-card">
+                  <FaPhone className="stat-icon" />
+                  <div>
+                    <label>Contact</label>
+                    <p>{instructorData.contact}</p>
+                  </div>
                 </div>
-              </div>
-            )}
-            {instructorData.birthday && (
-              <div className="stat-item">
-                <FaBirthdayCake className="stat-icon" />
-                <div>
-                  <p className="stat-label">Birthday</p>
-                  <p className="stat-value">{new Date(instructorData.birthday).toLocaleDateString()}</p>
+              )}
+              
+              {instructorData.birthday && (
+                <div className="stat-card">
+                  <FaBirthdayCake className="stat-icon" />
+                  <div>
+                    <label>Birthday</label>
+                    <p>{new Date(instructorData.birthday).toLocaleDateString()}</p>
+                  </div>
                 </div>
-              </div>
-            )}
-            {instructorData.age && (
-              <div className="stat-item">
-                <div>
-                  <p className="stat-label">Age</p>
-                  <p className="stat-value">{instructorData.age}</p>
+              )}
+              
+              {instructorData.age && (
+                <div className="stat-card">
+                  <FaUserTie className="stat-icon" />
+                  <div>
+                    <label>Age</label>
+                    <p>{instructorData.age}</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="card-title mb-4">Quick Stats</h3>
-          <div className="space-y-4">
+        <div className="quick-stats-card">
+          <h3>Quick Stats</h3>
+          <div className="stats-list">
             <div className="stat-item">
               <FaUsers className="stat-icon" />
               <div>
-                <p className="stat-label">Assigned Clients</p>
-                <p className="stat-value">
-                  {instructorData.assigned_clients_count || 0}
-                </p>
+                <label>Assigned Clients</label>
+                <p>{instructorData.assigned_clients_count || 0}</p>
               </div>
             </div>
             <div className="stat-item">
+              <FaCalendarAlt className="stat-icon" />
               <div>
-                <p className="stat-label">Experience</p>
-                <p className="stat-value">
-                  {instructorData.experience || "Not specified"}
-                </p>
+                <label>Experience</label>
+                <p>{instructorData.experience || "Not specified"}</p>
               </div>
             </div>
             <div className="stat-item">
+              {instructorData.specialization === "trainer" ? (
+                <FaDumbbell className="stat-icon" />
+              ) : (
+                <FaUtensils className="stat-icon" />
+              )}
               <div>
-                <p className="stat-label">Specialization</p>
-                <p className="stat-value">
-                  {instructorData.specialization || "Not specified"}
-                </p>
+                <label>Specialization</label>
+                <p>{instructorData.specialization || "Not specified"}</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="action-buttons">
         {instructorData.specialization?.toLowerCase() === "trainer" && (
           <button
             onClick={() => navigate("/create-plan")}
-            className="action-button purple"
+            className="btn btn-primary"
           >
             <FaDumbbell />
-            Create Fitness Plan
+            <span>Create Fitness Plan</span>
           </button>
         )}
         {instructorData.specialization?.toLowerCase() === "nutritionist" && (
           <button
             onClick={() => navigate("/create-meal")}
-            className="action-button green"
+            className="btn btn-success"
           >
             <FaUtensils />
-            Create Meal Plan
+            <span>Create Meal Plan</span>
           </button>
         )}
       </div>
 
-      <div className="card">
-        <h3 className="card-title mb-4">Your Clients</h3>
-        {instructorData.clients && instructorData.clients.length > 0 ? (
-          <div className="clients-grid">
-            {instructorData.clients.map((client) => (
-              <div key={client.id} className="client-card">
-                <h4 className="client-name">{client.username || client.email}</h4>
-                <p className="client-email">{client.email}</p>
-                {client.age && <p className="client-age">Age: {client.age}</p>}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-600">You don't have any assigned clients yet.</p>
-        )}
-      </div>
+      <section className="clients-section">
+        <div className="clients-card">
+          <header>
+            <h3>Your Clients</h3>
+            <span className="badge">
+              {instructorData.clients.length} clients
+            </span>
+          </header>
+          
+          {instructorData.clients.length > 0 ? (
+            <div className="clients-grid">
+              {instructorData.clients.map((client) => (
+                <div 
+                  key={client.id} 
+                  className="client-card"
+                  onClick={() => handleClientClick(client.id)}
+                >
+                  <div className="client-avatar">
+                    {client.username?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="client-info">
+                    <h4>{client.username || client.email}</h4>
+                    <p className="client-email">{client.email}</p>
+                    {client.age && <p className="client-meta">Age: {client.age}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <FaUsers className="empty-icon" />
+              <p>You don't have any assigned clients yet.</p>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

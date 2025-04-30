@@ -476,41 +476,52 @@ class UserSerializer(serializers.ModelSerializer):
 
 # for admin
 # serializers.py
-from rest_framework import serializers
-from .models import CustomUser
-
 # serializers.py
 class CustomUserSerializer(serializers.ModelSerializer):
+    assigned_clients_count = serializers.SerializerMethodField()
+    clients = serializers.SerializerMethodField()
+    
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'password', 'contact', 'experience', 'bio', 'specialization']
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'email': {'required': True},
-            'username': {'required': True},
-            # Make other fields optional
-            'contact': {'required': False, 'allow_blank': True},
-            'experience': {'required': False, 'allow_blank': True},
-            'bio': {'required': False, 'allow_blank': True},
-            'specialization': {'required': False, 'default': 'trainer'}
-        }
+        fields = [
+            'id', 'username', 'email', 'is_instructor',
+            'specialization', 'experience', 'bio',
+            'contact', 'birthday', 'age',
+            'assigned_clients_count', 'clients'
+        ]
+    
+    def get_assigned_clients_count(self, obj):
+        # Get count from context if available
+        if 'clients' in self.context:
+            return self.context['clients'].count()
         
-    def create(self, validated_data):
-        user = CustomUser.objects.create_user(
-            validated_data['username'],
-            validated_data['email'],
-            validated_data['password']
-        )
-        user.contact = validated_data.get('contact', '')
-        user.experience = validated_data.get('experience', '')
-        user.bio = validated_data.get('bio', '')
-        user.specialization = validated_data.get('specialization', '')
-        user.is_instructor = True
-        user.save()
-        return user
-
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        # Add any custom representation logic here
-        return representation
+        # Fallback to query if no context
+        if obj.specialization == 'trainer':
+            return SubscriptionPlan.objects.filter(trainer=obj).count()
+        elif obj.specialization == 'nutritionist':
+            return SubscriptionPlan.objects.filter(nutritionist=obj).count()
+        return 0
+    
+    def get_clients(self, obj):
+        # Get clients from context if available
+        if 'clients' in self.context:
+            clients = self.context['clients']
+        else:
+            # Fallback to query if no context
+            if obj.specialization == 'trainer':
+                clients = User.objects.filter(subscription__trainer=obj)
+            elif obj.specialization == 'nutritionist':
+                clients = User.objects.filter(subscription__nutritionist=obj)
+            else:
+                return []
+        
+        # Return minimal client data
+        return [
+            {
+                'id': client.id,
+                'username': client.username,
+                'email': client.email,
+                'age': client.age
+            }
+            for client in clients
+        ]

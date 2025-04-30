@@ -16,7 +16,9 @@ from .views import (
     FoodViewSet,
     UserViewSet,
     InstructorViewSet,
-    user_profile
+    user_profile,
+    instructor_dashboard,
+    client_details
 )
 
 router = DefaultRouter()
@@ -46,6 +48,8 @@ router.register(r'instructors', InstructorViewSet, basename='instructor')
 urlpatterns = [
     path('', include(router.urls)),
     path('api/user/profile/', user_profile, name='user-profile'),
+    path('api/instructor/dashboard/', instructor_dashboard, name='instructor-dashboard'),
+    path('api/clients/<int:client_id>/', client_details, name='client-details'),
     
     # Instructor routes (using non-viewset endpoints)
 ]

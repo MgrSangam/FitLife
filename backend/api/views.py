@@ -499,3 +499,79 @@ def user_profile(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+    
+    
+
+# views.py
+# views.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import get_user_model
+from .serializers import CustomUserSerializer
+
+User = get_user_model()
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def instructor_dashboard(request):
+    if not request.user.is_instructor:
+        return Response(
+            {"error": "Only instructors can access this dashboard"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Get all clients assigned to this instructor
+    if request.user.specialization == 'trainer':
+        clients = User.objects.filter(subscription__trainer=request.user)
+    elif request.user.specialization == 'nutritionist':
+        clients = User.objects.filter(subscription__nutritionist=request.user)
+    else:
+        clients = User.objects.none()
+    
+    # Serialize the instructor data with clients
+    serializer = CustomUserSerializer(request.user, context={
+        'clients': clients,
+        'request': request
+    })
+    
+    return Response(serializer.data)
+
+
+# views.py
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def client_details(request, client_id):
+    if not request.user.is_instructor:
+        return Response(
+            {"error": "Only instructors can access client details"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        # Verify the client is assigned to this instructor
+        if request.user.specialization == 'trainer':
+            client = User.objects.get(
+                id=client_id,
+                subscription__trainer=request.user
+            )
+        elif request.user.specialization == 'nutritionist':
+            client = User.objects.get(
+                id=client_id,
+                subscription__nutritionist=request.user
+            )
+        else:
+            return Response(
+                {"error": "Invalid instructor specialization"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Serialize client data
+        serializer = UserSerializer(client)
+        return Response(serializer.data)
+        
+    except User.DoesNotExist:
+        return Response(
+            {"error": "Client not found or not assigned to you"},
+            status=status.HTTP_404_NOT_FOUND
+        )
