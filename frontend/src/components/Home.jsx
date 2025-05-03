@@ -18,7 +18,6 @@ import './Home.css';
 import { MdSubscriptions } from 'react-icons/md';
 
 const HomePage = () => {
-  const [joinedChallenges, setJoinedChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
@@ -33,12 +32,10 @@ const HomePage = () => {
         setLoading(true);
         setError(null);
         
-        // Fetch joined challenges
+        // Fetch joined challenges (if needed for stats)
         const challengesResponse = await AxiosInstance.get('/api/challenge-participants/');
         const challengesData = Array.isArray(challengesResponse.data) ? 
           challengesResponse.data : [];
-        
-        setJoinedChallenges(challengesData);
         
         // Calculate some basic stats
         if (challengesData.length > 0) {
@@ -59,7 +56,6 @@ const HomePage = () => {
   }, []);
 
   const calculateDaysRemaining = (challenges) => {
-    // Implement your logic to calculate days remaining
     return challenges.reduce((acc, challenge) => {
       const endDate = new Date(challenge.end_date);
       const today = new Date();
@@ -70,7 +66,6 @@ const HomePage = () => {
   };
 
   const calculateCompletion = (challenges) => {
-    // Implement your completion percentage logic
     return Math.round(challenges.filter(c => c.completed).length / challenges.length * 100);
   };
 
@@ -99,17 +94,6 @@ const HomePage = () => {
     console.error('API Error:', err);
   };
 
-  const getChallengeIcon = (challenge) => {
-    const icons = {
-      'Push-Up': <FaFire className="text-red-500" />,
-      'Hydration': <FaGlassWhiskey className="text-blue-400" />,
-      'Cardio': <FaHeartbeat className="text-green-500" />,
-      'Strength': <FaDumbbell className="text-orange-500" />
-    };
-    
-    return icons[challenge.workout_type] || <FaTrophy className="text-yellow-500" />;
-  };
-
   const renderLoading = () => (
     <div className="loading-container">
       <div className="loading-spinner"></div>
@@ -134,41 +118,6 @@ const HomePage = () => {
     </div>
   );
 
-  const renderChallengeCard = (challenge) => (
-    <div key={challenge.id} className="challenge-card">
-      <div className="challenge-header">
-        <div className="challenge-icon">
-          {getChallengeIcon(challenge)}
-        </div>
-        <h3 className="challenge-title">{challenge.title}</h3>
-        <span className={`difficulty-badge ${challenge.difficulty}`}>
-          {challenge.difficulty}
-        </span>
-      </div>
-      
-      <div className="challenge-details">
-        <p>
-          <FaCalendarAlt /> {challenge.duration} days
-        </p>
-        <p>
-          <FaUsers /> {challenge.participants || 0} participants
-        </p>
-        <div className="progress-bar">
-          <div 
-            className="progress-fill" 
-            style={{ width: `${challenge.progress || 0}%` }}
-          ></div>
-        </div>
-      </div>
-      <Link 
-        to={`/challenge-detail/${challenge.id}`} 
-        className="view-details-link"
-      >
-        View Details
-      </Link>
-    </div>
-  );
-
   if (loading) return renderLoading();
   if (error) return renderError();
 
@@ -189,69 +138,37 @@ const HomePage = () => {
             <Link to="/goals" className="secondary-button">
               <FaTrophy /> Setup Goals
             </Link>
-            <Link to="/subscriptions" className="primary-button">
+            <Link to="/subscriptions" className="premium-button">
               <MdSubscriptions /> Premium Plan
             </Link>
           </div>
         </div>
       </div>
       
-      {/* Stats Overview */}
-      {joinedChallenges.length > 0 && (
-        <div className="stats-section">
-          <div className="stat-card">
-            <h3>Active Challenges</h3>
-            <p className="stat-value">{stats.activeChallenges}</p>
-          </div>
-
-        </div>
-      )}
-      
-      {/* Joined Challenges Section */}
-      <div className="joined-challenges-section">
-        <h2 className="section-title">
-          <FaTrophy /> Your Challenges
-        </h2>
-        
-        {joinedChallenges.length === 0 ? (
-          <div className="no-challenges">
-            <p>You haven't joined any challenges yet.</p>
-            <Link to="/challenges" className="browse-link">
-              Browse Available Challenges
-            </Link>
-          </div>
-        ) : (
-          <div className="challenges-grid">
-            {joinedChallenges.map(renderChallengeCard)}
-          </div>
-        )}
-      </div>
+      {/* Stats Overview - Removed since it's related to challenges */}
       
       {/* Features Section */}
       <div className="features-section">
-
-  
-  <div className="features-grid">
-    <div className="feature-card">
-      <div className="feature-icon">
-        <FaHeartbeat />
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">
+              <FaHeartbeat />
+            </div>
+            <h3>Workout Videos</h3>
+            <p>Access hundreds of workout videos for all fitness levels.</p>
+            <Link to="/workouts" className="feature-link">Explore</Link>
+          </div>
+          
+          <div className="feature-card">
+            <div className="feature-icon">
+              <FaUtensils />
+            </div>
+            <h3>Nutrition Guidance</h3>
+            <p>Personalized meal plans and nutrition advice.</p>
+            <Link to="/nutrition" className="feature-link">Learn More</Link>
+          </div>
+        </div>
       </div>
-      <h3>Workout Videos</h3>
-      <p>Access hundreds of workout videos for all fitness levels.</p>
-      <Link to="/workouts" className="feature-link">Explore</Link>
-    </div>
-    
-    <div className="feature-card">
-      <div className="feature-icon">
-        <FaUtensils />
-      </div>
-      <h3>Nutrition Guidance</h3>
-      <p>Personalized meal plans and nutrition advice.</p>
-      <Link to="/nutrition" className="feature-link">Learn More</Link>
-    </div>
-    
-  </div>
-</div>
     </div>
   );
 };
