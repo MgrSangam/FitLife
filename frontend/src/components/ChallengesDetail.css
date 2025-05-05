@@ -1,251 +1,153 @@
-/* Challenge.css */
 .challenge-detail-container {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  font-family: 'Arial', sans-serif;
-  background: white;
-  
-}
-.challenge-detail {
-
-  margin: 0 auto;
-  background: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
- 
-}
-.challenges-content {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.challenges-header {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.filters {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.filter-select {
-  padding: 0.5rem;
-  font-size: 1rem;
-  border-radius: 0.25rem;
-  border: 1px solid #ccc;
-}
-
-.challenges-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.challenge-card {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.card-header {
-  padding: 1rem;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  font-size: 1.25rem;
-  font-weight: 600;
-  gap: 0.5rem;
-}
-
-.difficulty-icon {
-  font-size: 1rem;
-}
-
-.challenge-image {
-  width: 100%;
-  height: auto;
-  margin-top: 0.75rem;
-  border-radius: 0.25rem;
-}
-
-.card-description {
-  margin: 0.75rem 0;
-  color: #555;
-  font-size: 0.95rem;
-}
-
-.card-content {
-  flex: 1;
-  padding: 0 1rem 1rem;
-}
-
-.details-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.9rem;
-  color: #333;
-}
-
-.detail-icon {
-  font-size: 1rem;
-}
-
-.card-footer {
-  padding: 1rem;
-  text-align: center;
-}
-
-.join-button {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-}
-
-.join-button[disabled] {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.join-message {
-  text-align: center;
-  margin-bottom: 1rem;
-  color: #28a745;
-  font-weight: 500;
-}
-
-.loading {
-  text-align: center;
-  font-size: 1.2rem;
-  padding: 2rem;
-}
-
-/* ChallengeDetail.css */
-
-.challenge-detail-container {
-  padding: 2rem;
-  background-color: #f9f9f9;
-  min-height: 100vh;
+  padding: 20px;
 }
 
 .back-link {
   display: inline-block;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
   color: #007bff;
   text-decoration: none;
 }
 
+.back-link:hover {
+  text-decoration: underline;
+}
+
 .challenge-detail {
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .detail-title {
   font-size: 2rem;
-  margin-bottom: 1rem;
-  text-align: center;
+  margin-bottom: 20px;
+}
+
+.image-container {
+  position: relative;
+  margin-bottom: 20px;
 }
 
 .detail-image {
   width: 100%;
   height: auto;
-  border-radius: 0.25rem;
-  margin-bottom: 1rem;
+  border-radius: 8px;
+}
+
+.download-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.download-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .detail-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  color: #555;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.95rem;
+  gap: 5px;
+  font-size: 1rem;
+  color: #555;
+}
+
+.meta-item.capitalize {
+  text-transform: capitalize;
 }
 
 .detail-description {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: #444;
-  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.join-message,
+.tick-message {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.join-message,
+.tick-message {
+  background-color: #e7f3fe;
+  color: #31708f;
+}
+
+.join-button-detail:disabled,
+.join-button-detail[aria-disabled="true"] {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .join-button-detail {
-  display: block;
-  margin: 0 auto;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  background: #007bff;
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 0.25rem;
+  padding: 10px 20px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 1rem;
+  margin-top: 10px;
 }
 
-.join-button-detail[disabled] {
-  background: #ccc;
-  cursor: not-allowed;
+.progress-tracker {
+  margin-top: 30px;
 }
 
-/* Add these styles to your existing CSS */
-
-.image-container {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 1rem;
+.progress-tracker h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  text-align: center;
 }
 
-.download-button {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
+.progress-boxes {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 5px;
+  justify-items: center;
+}
+
+.progress-box {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 0.9rem;
 }
 
-.download-button:hover {
-  background-color: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
+.progress-box.ticked {
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
 }
 
-.download-button svg {
-  font-size: 16px;
+.progress-box:disabled {
+  cursor: not-allowed;
 }

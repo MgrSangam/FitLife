@@ -107,53 +107,43 @@ class LoginView(viewsets.ViewSet):
         
  # admin.py    
 
+from rest_framework import viewsets, permissions
+from rest_framework.authentication import SessionAuthentication
+from knox.auth import TokenAuthentication
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Challenge, ChallengeParticipant
+from .serializers import ChallengeSerializer, ChallengeParticipantSerializer, TickDaySerializer
+
 class ChallengeView(viewsets.ModelViewSet):
     queryset = Challenge.objects.all().order_by('-created_at')
     serializer_class = ChallengeSerializer
     permission_classes = [permissions.AllowAny]
-    
-# In your views.py
-class ChallengeParticipantViewSet(viewsets.ModelViewSet):
-    serializer_class = ChallengeParticipantSerializer
-    
-    def get_queryset(self):
-        # Return only challenges joined by the current user
-        return ChallengeParticipant.objects.filter(user=self.request.user)
-
-
-# views.py
-# views.py
-
-# views.py
-from rest_framework import viewsets, permissions
-from rest_framework.authentication import SessionAuthentication
-from knox.auth import TokenAuthentication
-from .models import ChallengeParticipant
-from .serializers import ChallengeParticipantSerializer
 
 class ChallengeParticipantViewSet(viewsets.ModelViewSet):
-    """
-    list/retrieve/create ChallengeParticipant.
-    - GET    → list only the current user's participations
-    - POST   → join a new challenge (authenticated users only)
-    """
     serializer_class = ChallengeParticipantSerializer
     authentication_classes = [TokenAuthentication, SessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]  # Require auth for all actions
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
-        # Allow any (authenticated or session-auth) to GET, but require auth to POST
-        if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]  # you could swap to IsAuthenticatedOrReadOnly
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
-        # Show only the current user's challenge participations
         return ChallengeParticipant.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        # Automatically set `user` to the logged-in user
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='tick-day')
+    def tick_day(self, request, pk=None):
+        participant = self.get_object()
+        serializer = TickDaySerializer(data=request.data, context={'instance': participant})
+        if serializer.is_valid():
+            day = serializer.validated_data['day']
+            participant.progress.append(day)
+            participant.save()
+            return Response({'progress': participant.progress})
+        return Response(serializer.errors, status=400)
 
 
     

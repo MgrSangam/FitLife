@@ -95,9 +95,14 @@ class Challenge(models.Model):
         ('cardio', 'Cardio'),
     ]
     
+    # DURATION = [
+    #     ('monthly', '30 days'),
+    #     ('weekly', '7days')
+    # ]
+    
     title        = models.CharField(max_length=200)
     description  = models.TextField()
-    duration     = models.CharField(max_length=50)  # e.g. “30 days”
+    duration     = models.CharField(max_length=50)  
     start_date   = models.DateField()
     end_date     = models.DateField()
     difficulty   = models.CharField(max_length=12, choices=DIFFICULTY_CHOICES)
@@ -121,6 +126,7 @@ class ChallengeParticipant(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
     date_joined = models.DateField(auto_now_add=True)
+    progress = models.JSONField(default=list, blank=True)  # Stores ticked days, e.g., [1, 3, 5]
 
     class Meta:
         unique_together = ('user', 'challenge')  # Ensures a user can only join a challenge once

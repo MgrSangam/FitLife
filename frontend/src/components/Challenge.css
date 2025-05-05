@@ -183,6 +183,12 @@
   background-color: #7e22ce; /* purple-700 */
 }
 
+.join-button:disabled,
+.join-button[aria-disabled="true"] {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 /* === Difficulty Icons === */
 .difficulty-icon {
   font-size: 1.25rem; /* text-xl */

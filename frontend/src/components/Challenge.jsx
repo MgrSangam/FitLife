@@ -40,17 +40,18 @@ const Challenge = () => {
   useEffect(() => {
     const fetchJoined = async () => {
       try {
-        const { data } = await AxiosInstance.get(
-          "/api/challenge-participants/"
-        );
-        setJoinedIds(data.map((p) => p.challenge));
+        const { data } = await AxiosInstance.get("/api/challenge-participants/");
+        // Extract challenge IDs from the nested challenge object
+        const ids = data.map((p) => p.challenge.id);
+        setJoinedIds(ids);
         // If user has joined challenges, show only joined by default
-        if (data.length > 0) {
+        if (ids.length > 0) {
           setShowJoinedOnly(true);
         }
       } catch (error) {
         if (error.response?.status === 401) {
           setJoinedIds([]);
+          setShowJoinedOnly(false);
         } else {
           console.error("Error fetching joined challenges:", error);
         }
@@ -93,8 +94,8 @@ const Challenge = () => {
       });
       setJoinMessage(
         error.response?.data?.detail ||
-          error.response?.data?.message ||
-          "Error joining the challenge"
+        error.response?.data?.non_field_errors?.[0] ||
+        "Error joining the challenge"
       );
     } finally {
       setJoiningId(null);
@@ -113,6 +114,10 @@ const Challenge = () => {
       default:
         return null;
     }
+  };
+
+  const isJoinDisabled = (challengeId) => {
+    return joinedIds.length > 0 || joiningId === challengeId;
   };
 
   return (
@@ -177,6 +182,7 @@ const Challenge = () => {
           {filteredChallenges.length > 0 ? (
             filteredChallenges.map((challenge) => {
               const alreadyJoined = joinedIds.includes(challenge.id);
+              const joinDisabled = isJoinDisabled(challenge.id);
               return (
                 <div
                   key={challenge.id}
@@ -226,13 +232,15 @@ const Challenge = () => {
                     <button
                       onClick={() => handleJoinChallenge(challenge.id)}
                       className="join-button"
-                      disabled={alreadyJoined || joiningId === challenge.id}
-                      aria-disabled={alreadyJoined || joiningId === challenge.id}
+                      disabled={joinDisabled}
+                      aria-disabled={joinDisabled}
                     >
                       {alreadyJoined
                         ? "Joined"
                         : joiningId === challenge.id
                         ? "Joining..."
+                        : joinDisabled
+                        ? "Already in a Challenge"
                         : "Join Challenge"}
                     </button>
                   </div>

@@ -19,6 +19,9 @@ const ChallengeDetail = () => {
   const [joinMessage, setJoinMessage] = useState(null);
   const [joining, setJoining] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [alreadyEnrolled, setAlreadyEnrolled] = useState(false);
+  const [progress, setProgress] = useState([]);
+  const [tickMessage, setTickMessage] = useState(null);
 
   // Fetch challenge details
   useEffect(() => {
@@ -33,13 +36,15 @@ const ChallengeDetail = () => {
     fetchDetail();
   }, [id]);
 
-  // Check if already joined
+  // Check if already joined or enrolled in any challenge and fetch progress
   useEffect(() => {
     const fetchJoined = async () => {
       try {
         const { data } = await AxiosInstance.get("/api/challenge-participants/");
-        const hasJoined = data.some((p) => p.challenge === Number(id));
-        setJoined(hasJoined);
+        const participant = data.find((p) => Number(p.challenge.id) === Number(id));
+        setJoined(!!participant);
+        setAlreadyEnrolled(data.length > 0);
+        setProgress(participant ? participant.progress : []);
       } catch (err) {
         console.error("Error checking join status:", err);
       }
@@ -50,15 +55,63 @@ const ChallengeDetail = () => {
   const handleJoin = async () => {
     setJoining(true);
     try {
-      await AxiosInstance.post("/api/challenge-participants/", { challenge: id });
+      await AxiosInstance.post("/api/challenge-participants/", { challenge_id: id });
       setJoined(true);
+      setAlreadyEnrolled(true);
       setJoinMessage("You have joined this challenge!");
+      // Fetch updated progress after joining
+      const { data } = await AxiosInstance.get("/api/challenge-participants/");
+      const participant = data.find((p) => Number(p.challenge.id) === Number(id));
+      setProgress(participant ? participant.progress : []);
     } catch (err) {
       console.error("Error joining challenge:", err.response || err);
-      setJoinMessage(err.response?.data?.detail || "Could not join");
+      setJoinMessage(
+        err.response?.data?.detail ||
+        err.response?.data?.non_field_errors?.[0] ||
+        "Could not join"
+      );
     } finally {
       setJoining(false);
       setTimeout(() => setJoinMessage(null), 3000);
+    }
+  };
+
+  const handleTickDay = async (day) => {
+    try {
+      // Fetch the current participant data
+      const { data: participants } = await AxiosInstance.get("/api/challenge-participants/");
+      console.log("Participants data:", participants); // Debug log
+      const participant = participants.find((p) => Number(p.challenge.id) === Number(id));
+      console.log("Found participant:", participant); // Debug log
+      if (!participant) {
+        setTickMessage("You must join the challenge before ticking days.");
+        setTimeout(() => setTickMessage(null), 3000);
+        return;
+      }
+
+      const participantId = participant.participate_id; // Revert to 'participate_id'
+      console.log("Participant ID:", participantId); // Debug log
+      if (!participantId) {
+        setTickMessage("Invalid participant data. Please try again.");
+        setTimeout(() => setTickMessage(null), 3000);
+        return;
+      }
+
+      const { data } = await AxiosInstance.post(
+        `/api/challenge-participants/${participantId}/tick-day/`,
+        { day }
+      );
+      setProgress(data.progress);
+      setTickMessage(`Day ${day} ticked successfully!`);
+    } catch (err) {
+      console.error("Error ticking day:", err.response || err);
+      setTickMessage(
+        err.response?.data?.detail ||
+        err.response?.data?.non_field_errors?.[0] ||
+        "Could not tick day"
+      );
+    } finally {
+      setTimeout(() => setTickMessage(null), 3000);
     }
   };
 
@@ -67,32 +120,20 @@ const ChallengeDetail = () => {
     
     setDownloading(true);
     try {
-      // Fetch the image as a blob
       const response = await fetch(challenge.image_url);
       const blob = await response.blob();
-      
-      // Create a blob URL
       const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Create a temporary anchor element
       const link = document.createElement('a');
       link.href = blobUrl;
-      
-      // Set the download attribute with a filename
       const fileName = `challenge-${challenge.title.toLowerCase().replace(/\s+/g, '-')}.jpg`;
       link.download = fileName;
       link.setAttribute('download', fileName);
-      
-      // Append to the body, click it, and then remove it
       document.body.appendChild(link);
       link.click();
-      
-      // Clean up
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error('Error downloading image:', error);
-      // Fallback to the simple method if the blob approach fails
       const fallbackLink = document.createElement('a');
       fallbackLink.href = challenge.image_url;
       fallbackLink.download = `challenge-${challenge.title.toLowerCase().replace(/\s+/g, '-')}.jpg`;
@@ -121,10 +162,13 @@ const ChallengeDetail = () => {
     return <div className="loading">Loading challenge details...</div>;
   }
 
+  const totalDays = 30;
+  const progressBoxes = Array.from({ length: totalDays }, (_, i) => i + 1);
+
   return (
     <div className="challenge-detail-container">
       <Link to="/challenges" className="back-link">
-        &larr; Back to Challenges
+        ← Back to Challenges
       </Link>
 
       <div className="challenge-detail">
@@ -175,11 +219,36 @@ const ChallengeDetail = () => {
         <button
           className="join-button-detail"
           onClick={handleJoin}
-          disabled={joined || joining}
-          aria-disabled={joined || joining}
+          disabled={joined || joining || alreadyEnrolled}
+          aria-disabled={joined || joining || alreadyEnrolled}
         >
-          {joined ? "Joined" : joining ? "Joining..." : "Join Challenge"}
+          {joined
+            ? "Joined"
+            : joining
+            ? "Joining..."
+            : alreadyEnrolled
+            ? "Already in a Challenge"
+            : "Join Challenge"}
         </button>
+
+        {joined && (
+          <div className="progress-tracker">
+            <h3>Progress Tracking</h3>
+            <div className="progress-boxes">
+              {progressBoxes.map((day) => (
+                <button
+                  key={day}
+                  className={`progress-box ${progress.includes(day) ? 'ticked' : ''}`}
+                  onClick={() => handleTickDay(day)}
+                  disabled={progress.includes(day)}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
+            {tickMessage && <div className="tick-message">{tickMessage}</div>}
+          </div>
+        )}
       </div>
     </div>
   );
