@@ -139,6 +139,7 @@ class ChallengeParticipantViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ChallengeParticipantSerializer
     authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [permissions.IsAuthenticated]  # Require auth for all actions
 
     def get_permissions(self):
         # Allow any (authenticated or session-auth) to GET, but require auth to POST
@@ -575,3 +576,85 @@ def client_details(request, client_id):
             {"error": "Client not found or not assigned to you"},
             status=status.HTTP_404_NOT_FOUND
         )
+        
+        
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
+from django.db import models
+from .models import ChatMessage
+from .serializers import ChatMessageSerializer
+
+User = get_user_model()
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def chat_messages(request, instructor_id=None):
+    if request.method == 'GET':
+        if instructor_id:
+            # Fetch messages between the current user and the specified instructor
+            messages = ChatMessage.objects.filter(
+                models.Q(sender=request.user, recipient_id=instructor_id) |
+                models.Q(sender_id=instructor_id, recipient=request.user)
+            ).order_by('timestamp')
+            serializer = ChatMessageSerializer(messages, many=True)
+            return Response(serializer.data)
+        else:
+            # Get all instructors the user has chatted with
+            instructors = User.objects.filter(
+                models.Q(sent_messages__recipient=request.user) |
+                models.Q(received_messages__sender=request.user),
+                is_instructor=True
+            ).distinct()
+            serializer = CustomUserSerializer(instructors, many=True)
+            return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        # Send a new message
+        recipient = User.objects.filter(id=instructor_id, is_instructor=True).first()
+        if not recipient:
+            return Response({"error": "Instructor not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if the instructor is assigned to the user
+        try:
+            if not (request.user.subscription.trainer == recipient or 
+                    request.user.subscription.nutritionist == recipient):
+                return Response(
+                    {"error": "You can only message your assigned instructors"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        except AttributeError:
+            return Response(
+                {"error": "No subscription found"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        message = ChatMessage.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            message=request.data.get('message')
+        )
+        serializer = ChatMessageSerializer(message)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+# views.py
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def assigned_instructors(request):
+    user = request.user
+    instructors = []
+    
+    try:
+        subscription = user.subscription
+        if subscription.trainer:
+            instructors.append(subscription.trainer)
+        if subscription.nutritionist:
+            instructors.append(subscription.nutritionist)
+    except AttributeError:
+        # Handle case where user has no subscription
+        pass
+    
+    serializer = CustomUserSerializer(instructors, many=True)
+    return Response(serializer.data)

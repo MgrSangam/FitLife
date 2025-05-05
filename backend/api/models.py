@@ -629,3 +629,21 @@ class MealFood(models.Model):
     
     def __str__(self):
         return f"{self.meal_plan.name} - Day {self.day} - {self.get_meal_time_display()} - {self.food.name}"
+    
+    
+    
+# models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class ChatMessage(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['timestamp']

@@ -156,7 +156,7 @@ const HomePage = () => {
             </div>
             <h3>Workout Videos</h3>
             <p>Access hundreds of workout videos for all fitness levels.</p>
-            <Link to="/workouts" className="feature-link">Explore</Link>
+            <Link to="/education" className="feature-link">Explore</Link>
           </div>
           
           <div className="feature-card">
@@ -165,7 +165,7 @@ const HomePage = () => {
             </div>
             <h3>Nutrition Guidance</h3>
             <p>Personalized meal plans and nutrition advice.</p>
-            <Link to="/nutrition" className="feature-link">Learn More</Link>
+            <Link to="/mealsplan" className="feature-link">Learn More</Link>
           </div>
         </div>
       </div>

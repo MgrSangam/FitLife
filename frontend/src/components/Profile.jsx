@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AxiosInstance from './Axiosinstance';
+import { FaComments, FaUserTie, FaPaperPlane } from 'react-icons/fa';
 import {
   FaUser,
   FaEnvelope,
@@ -16,12 +17,19 @@ import {
   FaDumbbell
 } from 'react-icons/fa';
 import './Profile.css';
+import Chat from './Chat';
 
 const Profile = () => {
+  const [assignedInstructors, setAssignedInstructors] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [activeChat, setActiveChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -38,33 +46,61 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await AxiosInstance.get('/api/user/profile/');
-        setUser(response.data);
+        const [profileRes, instructorsRes] = await Promise.all([
+          AxiosInstance.get('/api/user/profile/'),
+          AxiosInstance.get('/api/user/assigned-instructors/')
+        ]);
+        console.log('Profile data:', profileRes.data);
+        console.log('Instructors data:', instructorsRes.data);
+        setUser(profileRes.data);
+        setAssignedInstructors(instructorsRes.data);
         setFormData({
-          first_name: response.data.first_name || '',
-          last_name: response.data.last_name || '',
-          email: response.data.email || '',
-          phone: response.data.phone || '',
-          gender: response.data.gender || '',
-          birthday: response.data.birthday || '',
-          weight: response.data.weight || '',
-          height: response.data.height || '',
-          bio: response.data.bio || '',
-          location: response.data.location || '',
-          fitness_goals: response.data.fitness_goals || '',
-          preferred_workouts: response.data.preferred_workouts || ''
+          first_name: profileRes.data.first_name || '',
+          last_name: profileRes.data.last_name || '',
+          email: profileRes.data.email || '',
+          phone: profileRes.data.phone || '',
+          gender: profileRes.data.gender || '',
+          birthday: profileRes.data.birthday || '',
+          weight: profileRes.data.weight || '',
+          height: profileRes.data.height || '',
+          bio: profileRes.data.bio || '',
+          location: profileRes.data.location || '',
+          fitness_goals: profileRes.data.fitness_goals || '',
+          preferred_workouts: profileRes.data.preferred_workouts || ''
         });
       } catch (err) {
-        setError('Failed to load profile');
-        console.error('Error fetching profile:', err);
+        const errorMessage = err.response
+          ? `Error ${err.response.status}: ${err.response.data?.detail || 'Unknown error'}`
+          : `Network error: ${err.message}`;
+        console.error('Fetch error:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
-    fetchUserProfile();
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    if (activeChat) {
+      const fetchMessages = async () => {
+        try {
+          const response = await AxiosInstance.get(`/api/chat/${activeChat.id}/`);
+          setMessages(response.data);
+        } catch (err) {
+          console.error('Error fetching messages:', err);
+        }
+      };
+      fetchMessages();
+    }
+  }, [activeChat]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,12 +119,77 @@ const Profile = () => {
     }
   };
 
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    try {
+      const response = await AxiosInstance.post(`/api/chat/${activeChat.id}/`, {
+        message: newMessage
+      });
+      setMessages([...messages, response.data]);
+      setNewMessage('');
+    } catch (err) {
+      console.error('Error sending message:', err);
+    }
+  };
+
+  const openChat = (instructor) => {
+    setActiveChat(instructor);
+  };
+
+  const closeChat = () => {
+    setActiveChat(null);
+  };
+
   if (loading) return <div className="loading">Loading profile...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!user) return <div className="error">User not found</div>;
 
   return (
     <div className="profile-container">
+      {activeChat && (
+        <div className="profile-chat-overlay">
+          <div className="profile-chat-container">
+            <div className="profile-chat-header">
+              <h3>Chat with {activeChat.username}</h3>
+              <button onClick={closeChat} className="close-chat-btn">
+                &times;
+              </button>
+            </div>
+            <div className="profile-chat-messages">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`profile-chat-message ${
+                    message.sender === user.username ? 'sent' : 'received'
+                  }`}
+                >
+                  <p>{message.message}</p>
+                  <span className="message-time">
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <form onSubmit={handleSendMessage} className="profile-chat-form">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+              />
+              <button type="submit">
+                <FaPaperPlane />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="profile-header">
         <div className="profile-avatar">
           <div className="avatar-placeholder">
@@ -110,150 +211,188 @@ const Profile = () => {
 
       <div className="profile-content">
         {editing ? (
-          <form onSubmit={handleSubmit} className="profile-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label>First Name</label>
-                <input
-                  type="text"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Last Name</label>
-                <input
-                  type="text"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Gender</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Birth Date</label>
-                <input
-                  type="date"
-                  name="birthday"
-                  value={formData.birthday}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Weight (kg)</label>
-                <input
-                  type="number"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleInputChange}
-                  step="0.1"
-                />
-              </div>
-              <div className="form-group">
-                <label>Height (cm)</label>
-                <input
-                  type="number"
-                  name="height"
-                  value={formData.height}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Location</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Fitness Goals</label>
-              <textarea
-                name="fitness_goals"
-                value={formData.fitness_goals}
-                onChange={handleInputChange}
-                rows="2"
-                placeholder="E.g., Lose weight, build muscle, improve endurance"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Preferred Workouts</label>
-              <textarea
-                name="preferred_workouts"
-                value={formData.preferred_workouts}
-                onChange={handleInputChange}
-                rows="2"
-                placeholder="E.g., Weight lifting, yoga, running"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Bio</label>
-              <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleInputChange}
-                rows="3"
-              />
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="save-btn">
-                Save Changes
-              </button>
-            </div>
-          </form>
+                    <form onSubmit={handleSubmit} className="profile-form">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>First Name</label>
+                        <input
+                          type="text"
+                          name="first_name"
+                          value={formData.first_name}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Last Name</label>
+                        <input
+                          type="text"
+                          name="last_name"
+                          value={formData.last_name}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                    </div>
+        
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+        
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Gender</label>
+                        <select
+                          name="gender"
+                          value={formData.gender}
+                          onChange={handleInputChange}
+                        >
+                          <option value="">Select</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Birth Date</label>
+                        <input
+                          type="date"
+                          name="birthday"
+                          value={formData.birthday}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+        
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Weight (kg)</label>
+                        <input
+                          type="number"
+                          name="weight"
+                          value={formData.weight}
+                          onChange={handleInputChange}
+                          step="0.1"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Height (cm)</label>
+                        <input
+                          type="number"
+                          name="height"
+                          value={formData.height}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+        
+                    <div className="form-group">
+                      <label>Location</label>
+                      <input
+                        type="text"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+        
+                    <div className="form-group">
+                      <label>Fitness Goals</label>
+                      <textarea
+                        name="fitness_goals"
+                        value={formData.fitness_goals}
+                        onChange={handleInputChange}
+                        rows="2"
+                        placeholder="E.g., Lose weight, build muscle, improve endurance"
+                      />
+                    </div>
+        
+                    <div className="form-group">
+                      <label>Preferred Workouts</label>
+                      <textarea
+                        name="preferred_workouts"
+                        value={formData.preferred_workouts}
+                        onChange={handleInputChange}
+                        rows="2"
+                        placeholder="E.g., Weight lifting, yoga, running"
+                      />
+                    </div>
+        
+                    <div className="form-group">
+                      <label>Bio</label>
+                      <textarea
+                        name="bio"
+                        value={formData.bio}
+                        onChange={handleInputChange}
+                        rows="3"
+                      />
+                    </div>
+        
+                    <div className="form-actions">
+                      <button type="submit" className="save-btn">
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+        
         ) : (
           <div className="profile-details">
-            <div className="info-grid">
+            {assignedInstructors.length > 0 && (
+              <div className="assigned-instructors-section">
+                <h2>Your Instructors</h2>
+                <div className="instructors-grid">
+                  {assignedInstructors.map((instructor) => (
+                    <div key={instructor.id} className="instructor-card">
+                      <div className="instructor-avatar">
+                        {instructor.profile_picture ? (
+                          <img 
+                            src={`data:image/jpeg;base64,${instructor.profile_picture}`} 
+                            alt={instructor.username}
+                          />
+                        ) : (
+                          <FaUserTie size={24} />
+                        )}
+                      </div>
+                      <div className="instructor-info">
+                        <h4>{instructor.username}</h4>
+                        <p className="instructor-specialization">
+                          {instructor.specialization === 'trainer' 
+                            ? 'Personal Trainer' 
+                            : 'Nutritionist'}
+                        </p>
+                        <p className="instructor-bio">{instructor.bio || 'No bio provided'}</p>
+                        <button
+                          className="chat-btn"
+                          onClick={() => openChat(instructor)}
+                        >
+                          <FaComments /> Message
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+<div className="info-grid">
               <div className="info-item">
                 <FaEnvelope className="info-icon" />
                 <div className="info-content">

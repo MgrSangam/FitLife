@@ -15,6 +15,7 @@ import PlanManagement from "./PlanManagement";
 import ChallengeManagement from "./ChallengeManagement";
 import ContentManagement from "./ContentManagement";
 import UserList from "./UserList";
+import MealManagement from "./MealManagement";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("instructors");
@@ -24,6 +25,7 @@ const AdminPage = () => {
     { id: "exercises", label: "Exercises", icon: <FaDumbbell />, component: <ExerciseManagement /> },
     { id: "food", label: "Food Items", icon: <FaUtensils />, component: <FoodManagement /> },
     { id: "plans", label: "Plans", icon: <FaCalendarAlt />, component: <PlanManagement /> },
+    { id: "meals", label: "Meals", icon: <FaClipboardList />, component: <MealManagement /> },
     { id: "challenges", label: "Challenges", icon: <FaTrophy />, component: <ChallengeManagement /> },
     { id: "content", label: "Content", icon: <FaVideo />, component: <ContentManagement /> },
     { id: "users", label: "Users", icon: <FaUsers />, component: <UserList /> }

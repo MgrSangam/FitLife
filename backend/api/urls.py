@@ -18,7 +18,9 @@ from .views import (
     InstructorViewSet,
     user_profile,
     instructor_dashboard,
-    client_details
+    client_details,
+    assigned_instructors,
+    chat_messages
 )
 
 router = DefaultRouter()
@@ -45,11 +47,13 @@ router.register(r'api/foods', FoodViewSet, basename='foods')
 # User management routes
 router.register(r'api/users', UserViewSet, basename='users')
 router.register(r'instructors', InstructorViewSet, basename='instructor')
+
 urlpatterns = [
     path('', include(router.urls)),
     path('api/user/profile/', user_profile, name='user-profile'),
     path('api/instructor/dashboard/', instructor_dashboard, name='instructor-dashboard'),
     path('api/clients/<int:client_id>/', client_details, name='client-details'),
-    
-    # Instructor routes (using non-viewset endpoints)
+    path('api/chat/<int:instructor_id>/', chat_messages, name='chat-messages'),
+    path('api/chat/', chat_messages, name='chat-list'),
+    path('api/user/assigned-instructors/', assigned_instructors, name='assigned-instructors'),  # Moved to path
 ]
