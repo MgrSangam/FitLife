@@ -482,6 +482,24 @@ class FitnessPlan(models.Model):
         return self.name
 
 
+from django.db import models
+from django.contrib.auth import get_user_model
+from .models import FitnessPlan
+
+User = get_user_model()
+
+class FitnessPlanUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fitness_plan_users')
+    fitness_plan = models.ForeignKey(FitnessPlan, on_delete=models.CASCADE, related_name='users')
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'fitness_plan')  # Prevent duplicate joins
+        verbose_name = 'Fitness Plan User'
+        verbose_name_plural = 'Fitness Plan Users'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.fitness_plan.name}"
 
 class FitnessPlanExercise(models.Model):
     DAYS_OF_WEEK = [
@@ -575,7 +593,18 @@ class MealPlan(models.Model):
     def __str__(self):
         return self.name
 
+class MealPlanUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meal_plan_users')
+    meal_plan = models.ForeignKey(MealPlan, on_delete=models.CASCADE, related_name='users')
+    joined_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('user', 'meal_plan')
+        verbose_name = 'Meal Plan User'
+        verbose_name_plural = 'Meal Plan Users'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.meal_plan.name}"
 
 class MealFood(models.Model):
     MEAL_TIME_CHOICES = [

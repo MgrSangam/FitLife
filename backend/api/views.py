@@ -346,6 +346,29 @@ class FitnessPlanViewSet(viewsets.ModelViewSet):
                 )
         
         return super().create(request, *args, **kwargs)
+    
+    
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
+from .models import FitnessPlanUser
+from .serializers import FitnessPlanUserSerializer
+
+class FitnessPlanUserViewSet(viewsets.ModelViewSet):
+    queryset = FitnessPlanUser.objects.all()
+    serializer_class = FitnessPlanUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only return plans for the authenticated user
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Check if the user has already joined a plan
+        if FitnessPlanUser.objects.filter(user=self.request.user).exists():
+            raise ValidationError("You can only join one fitness plan at a time.")
+        # Automatically set the user to the authenticated user
+        serializer.save(user=self.request.user)
 
 class FitnessPlanExerciseViewSet(
     mixins.CreateModelMixin,
@@ -389,6 +412,27 @@ class MealPlanViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(plan_type=plan_type)
         return queryset.prefetch_related('meal_foods')
 
+
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
+from .models import MealPlanUser
+from .serializers import MealPlanUserSerializer
+
+class MealPlanUserViewSet(viewsets.ModelViewSet):
+    queryset = MealPlanUser.objects.all()
+    serializer_class = MealPlanUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        if MealPlanUser.objects.filter(user=self.request.user).exists():
+            raise ValidationError("You can only join one meal plan at a time.")
+        serializer.save(user=self.request.user)
+        
+        
 class MealFoodViewSet(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,

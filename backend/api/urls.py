@@ -20,7 +20,9 @@ from .views import (
     instructor_dashboard,
     client_details,
     assigned_instructors,
-    chat_messages
+    chat_messages,
+    FitnessPlanUserViewSet,
+    MealPlanUserViewSet
 )
 
 router = DefaultRouter()
@@ -47,6 +49,10 @@ router.register(r'api/foods', FoodViewSet, basename='foods')
 # User management routes
 router.register(r'api/users', UserViewSet, basename='users')
 router.register(r'instructors', InstructorViewSet, basename='instructor')
+
+
+router.register(r'api/fitness-plan-users', FitnessPlanUserViewSet, basename='fitness-plan-users')
+router.register(r'api/meal-plan-users', MealPlanUserViewSet, basename='meal-plan-users')
 
 urlpatterns = [
     path('', include(router.urls)),

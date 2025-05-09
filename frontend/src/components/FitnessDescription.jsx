@@ -20,22 +20,47 @@ const FitnessPlanDetail = () => {
   const [error, setError] = useState(null);
   const [activeDay, setActiveDay] = useState("monday");
   const [downloading, setDownloading] = useState(false);
+  const [isJoined, setIsJoined] = useState(false);
 
-  // Fetch plan details
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const { data } = await AxiosInstance.get(`/api/fitness-plans/${id}/`);
-        setPlan(data);
+        const [planResponse, joinedResponse] = await Promise.all([
+          AxiosInstance.get(`/api/fitness-plans/${id}/`),
+          AxiosInstance.get("/api/fitness-plan-users/")
+        ]);
+        console.log("Plan Response:", planResponse.data);
+        console.log("Joined Response:", joinedResponse.data);
+        setPlan(planResponse.data);
+        const joinedPlanIds = joinedResponse.data.map(item => item.fitness_plan);
+        setIsJoined(joinedPlanIds.includes(parseInt(id)));
       } catch (err) {
-        setError("Failed to fetch plan details");
-        console.error("Error fetching plan details:", err);
+        const errorMessage = err.response
+          ? `API Error: ${err.response.status} - ${err.response.data?.detail || "No detail provided"}`
+          : `Network Error: ${err.message}`;
+        console.error("Error fetching plan details:", errorMessage);
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
     fetchDetail();
   }, [id]);
+
+  const handleJoinPlan = async () => {
+    try {
+      const response = await AxiosInstance.post("/api/fitness-plan-users/", { fitness_plan: id });
+      console.log("Join Plan Response:", response.data);
+      setIsJoined(true);
+      alert("Successfully joined the fitness plan!");
+    } catch (error) {
+      const errorMessage = error.response
+        ? `Join Error: ${error.response.status} - ${error.response.data?.detail || "No detail provided"}`
+        : `Network Error: ${error.message}`;
+      console.error("Error joining plan:", errorMessage);
+      alert(`Failed to join the plan: ${errorMessage}`);
+    }
+  };
 
   const getPlanTypeIcon = (type) => {
     switch (type) {
@@ -68,32 +93,21 @@ const FitnessPlanDetail = () => {
     
     setDownloading(true);
     try {
-      // Fetch the image as a blob
       const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
       const blob = await response.blob();
-      
-      // Create a blob URL
       const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Create a temporary anchor element
       const link = document.createElement('a');
       link.href = blobUrl;
-      
-      // Set the download attribute with a filename
       const fileName = `fitness-${imageName.toLowerCase().replace(/\s+/g, '-')}.jpg`;
       link.download = fileName;
       link.setAttribute('download', fileName);
-      
-      // Append to the body, click it, and then remove it
       document.body.appendChild(link);
       link.click();
-      
-      // Clean up
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error('Error downloading image:', error);
-      // Fallback to the simple method if the blob approach fails
+      console.error('Error downloading image:', error.message);
       const fallbackLink = document.createElement('a');
       fallbackLink.href = imageUrl;
       fallbackLink.download = `fitness-${imageName.toLowerCase().replace(/\s+/g, '-')}.jpg`;
@@ -105,11 +119,10 @@ const FitnessPlanDetail = () => {
     }
   };
 
-  if (loading) return <div className="loading">Loading plan details...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!plan) return <div className="error">Plan not found</div>;
+  if (loading) return <div className="loading">Loading plan details, please wait...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
+  if (!plan) return <div className="error">No plan found for ID: {id}</div>;
 
-  // Group exercises by day
   const exercisesByDay = plan.exercises?.reduce((acc, exercise) => {
     const day = exercise.day;
     if (!acc[day]) acc[day] = [];
@@ -124,11 +137,13 @@ const FitnessPlanDetail = () => {
   return (
     <div className="fitness-plan-container">
       <Link to="/fitnessplan" className="back-link">
-        &larr; Back to Fitness Plans
+        ← Back to Fitness Plans
       </Link>
 
       <div className="fitness-plan-detail">
-        <h2 className="detail-title">{plan.name}</h2>
+        <div className="detail-header">
+          <h2 className="detail-title">{plan.name}</h2>
+        </div>
 
         {plan.picture && (
           <div className="image-container">
@@ -166,6 +181,13 @@ const FitnessPlanDetail = () => {
           <p className="detail-description">
             {plan.description || "No description provided."}
           </p>
+          <button
+            className={`join-button ${isJoined ? 'joined' : ''}`}
+            onClick={handleJoinPlan}
+            disabled={isJoined}
+          >
+            {isJoined ? 'Joined' : 'Join Plan'}
+          </button>
         </div>
 
         <div className="detail-section">

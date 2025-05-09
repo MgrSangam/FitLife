@@ -299,3 +299,44 @@ class MealFoodAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('meal_plan', 'food')
+    
+    
+    
+from django.contrib import admin
+from .models import FitnessPlanUser
+
+@admin.register(FitnessPlanUser)
+class FitnessPlanUserAdmin(admin.ModelAdmin):
+    list_display = ('user_email', 'fitness_plan_name', 'joined_at')
+    list_filter = ('joined_at', 'fitness_plan', 'user')
+    search_fields = ('user__email', 'user__username', 'fitness_plan__name')
+    date_hierarchy = 'joined_at'
+    ordering = ('-joined_at',)
+
+    def user_email(self, obj):
+        return obj.user.email
+    user_email.short_description = 'User Email'
+
+    def fitness_plan_name(self, obj):
+        return obj.fitness_plan.name
+    fitness_plan_name.short_description = 'Fitness Plan'
+    
+
+from django.contrib import admin
+from .models import MealPlanUser
+
+@admin.register(MealPlanUser)
+class MealPlanUserAdmin(admin.ModelAdmin):
+    list_display = ('user_email', 'meal_plan_name', 'joined_at')
+    list_filter = ('joined_at', 'meal_plan', 'user')
+    search_fields = ('user__email', 'user__username', 'meal_plan__name')
+    date_hierarchy = 'joined_at'
+    ordering = ('-joined_at',)
+
+    def user_email(self, obj):
+        return obj.user.email
+    user_email.short_description = 'User Email'
+
+    def meal_plan_name(self, obj):
+        return obj.meal_plan.name
+    meal_plan_name.short_description = 'Meal Plan'

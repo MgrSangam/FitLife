@@ -2,14 +2,17 @@ import { useState, useEffect } from "react";
 import { FaDumbbell, FaCalendarAlt, FaHeartbeat, FaRunning } from "react-icons/fa";
 import AxiosInstance from "./Axiosinstance";
 import { useNavigate } from "react-router-dom";
-
 import "./FitnessPlan.css";
 
 const FitnessPlan = () => {
   const [fitnessPlans, setFitnessPlans] = useState([]);
+  const [joinedPlans, setJoinedPlans] = useState([]);
   const [planType, setPlanType] = useState("all");
   const [duration, setDuration] = useState("all");
   const [difficulty, setDifficulty] = useState("all");
+  const [showJoinedOnly, setShowJoinedOnly] = useState(false);
+  const [joinMessage, setJoinMessage] = useState(null);
+  const [joiningId, setJoiningId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -20,14 +23,34 @@ const FitnessPlan = () => {
         const plansWithDisplay = data.map(plan => ({
           ...plan,
           plan_type_display: plan.plan_type_display || getPlanTypeDisplay(plan.plan_type),
-          imageUrl: plan.picture_url // Use the URL provided by the serializer
+          imageUrl: plan.picture_url
         }));
         setFitnessPlans(plansWithDisplay);
       } catch (error) {
         console.error("Error fetching fitness plans:", error);
       }
     };
+
+    const fetchJoinedPlans = async () => {
+      try {
+        const { data } = await AxiosInstance.get("/api/fitness-plan-users/");
+        const ids = data.map(item => item.fitness_plan);
+        setJoinedPlans(ids);
+        if (ids.length > 0) {
+          setShowJoinedOnly(true);
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          setJoinedPlans([]);
+          setShowJoinedOnly(false);
+        } else {
+          console.error("Error fetching joined plans:", error);
+        }
+      }
+    };
+
     fetchFitnessPlans();
+    fetchJoinedPlans();
   }, []);
 
   const getPlanTypeDisplay = (planType) => {
@@ -54,7 +77,40 @@ const FitnessPlan = () => {
     return difficultyMap[difficulty] || difficulty;
   };
 
+  const handleJoinPlan = async (planId) => {
+    if (joinedPlans.length > 0) {
+      setJoinMessage("You can only join one plan at a time.");
+      setTimeout(() => setJoinMessage(null), 3000);
+      return;
+    }
+
+    try {
+      setJoiningId(planId);
+      const { data } = await AxiosInstance.post("/api/fitness-plan-users/", { fitness_plan: planId });
+      setJoinMessage("Successfully joined the fitness plan!");
+      setJoinedPlans([planId]); // Set to single plan ID
+      setShowJoinedOnly(true);
+    } catch (error) {
+      console.error("Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      setJoinMessage(
+        error.response?.data?.detail ||
+        error.response?.data?.non_field_errors?.[0] ||
+        "Error joining the plan"
+      );
+    } finally {
+      setJoiningId(null);
+      setTimeout(() => setJoinMessage(null), 3000);
+    }
+  };
+
   const filteredPlans = fitnessPlans.filter((plan) => {
+    if (showJoinedOnly && !joinedPlans.includes(plan.id)) {
+      return false;
+    }
     const matchPlan = planType === "all" || plan.plan_type === planType;
     const matchDuration = duration === "all" || plan.duration_weeks === parseInt(duration);
     const matchDifficulty = difficulty === "all" || plan.difficulty === difficulty;
@@ -64,17 +120,27 @@ const FitnessPlan = () => {
   return (
     <div className="fitness-container">
       <div className="fitness-content">
-        {/* Combined header with icon and filters */}
-        <div className="fitness-header-container">
-          <div className="header-icon-title">
-            <FaRunning className="fitness-plan-icon" />
-            <h1 className="fitness-header">Fitness Plans</h1>
-            <p className="fitness-subheader">
-                Browse personalized meal plans tailored to your fitness goals.
-            </p>
+        <div className="fitness-section">
+          <div className="running-icon">
+            <FaRunning style={{ color: 'white' }} />
           </div>
-          
+          <h1 className="fitness-header">Fitness Plans</h1>
+          <p className="fitness-subheader">
+            Browse personalized fitness plans tailored to your goals.
+          </p>
+
+          {joinMessage && <div className="join-message">{joinMessage}</div>}
+
           <div className="filters">
+            {joinedPlans.length > 0 && (
+              <button
+                onClick={() => setShowJoinedOnly(!showJoinedOnly)}
+                className={`toggle-joined-button ${showJoinedOnly ? 'active' : ''}`}
+              >
+                {showJoinedOnly ? 'Show All Plans' : 'Show Only Joined Plans'}
+              </button>
+            )}
+
             <select
               value={planType}
               onChange={(e) => setPlanType(e.target.value)}
@@ -121,7 +187,6 @@ const FitnessPlan = () => {
                 className="fitness-card"
                 onClick={() => navigate(`/fitnessplan-detail/${plan.id}`)}
               >
-                {/* Image at the top */}
                 {plan.imageUrl && (
                   <div className="card-image-container">
                     <img
@@ -136,12 +201,10 @@ const FitnessPlan = () => {
                 )}
 
                 <div className="card-body">
-                  {/* Title below image */}
                   <h3 className="card-title">
                     {plan.name || plan.title || "Untitled Plan"}
                   </h3>
 
-                  {/* Description below title */}
                   {plan.description && (
                     <p className="card-description">
                       {plan.description.length > 100 
@@ -150,7 +213,6 @@ const FitnessPlan = () => {
                     </p>
                   )}
 
-                  {/* Details at the bottom */}
                   <div className="card-details">
                     <div className="detail-item">
                       <FaDumbbell className="detail-icon" />
@@ -169,22 +231,33 @@ const FitnessPlan = () => {
                   </div>
                 </div>
 
-                <div className="card-footer">
-                  <button 
-                    className="view-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/fitnessplan-detail/${plan.id}`);
+                <div className="card-footer" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    className={`join-button ${joinedPlans.includes(plan.id) ? 'joined' : ''}`}
+                    onClick={() => {
+                      if (!joinedPlans.includes(plan.id)) {
+                        handleJoinPlan(plan.id);
+                      }
                     }}
+                    disabled={joinedPlans.includes(plan.id) || (joinedPlans.length > 0 && !joinedPlans.includes(plan.id)) || joiningId === plan.id}
+                    aria-disabled={joinedPlans.includes(plan.id) || (joinedPlans.length > 0 && !joinedPlans.includes(plan.id)) || joiningId === plan.id}
                   >
-                    View Plan
+                    {joinedPlans.includes(plan.id)
+                      ? 'Joined'
+                      : joiningId === plan.id
+                      ? 'Joining...'
+                      : joinedPlans.length > 0
+                      ? 'Already in a Plan'
+                      : 'Join Plan'}
                   </button>
                 </div>
               </div>
             ))
           ) : (
             <div className="no-plans-message">
-              No fitness plans match your selected filters.
+              {showJoinedOnly 
+                ? "You haven't joined any plans yet." 
+                : "No fitness plans match your filters."}
             </div>
           )}
         </div>

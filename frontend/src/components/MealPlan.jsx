@@ -6,27 +6,50 @@ import "./MealPlan.css";
 
 const MealPlan = () => {
   const [mealPlans, setMealPlans] = useState([]);
+  const [joinedPlans, setJoinedPlans] = useState([]);
   const [planType, setPlanType] = useState("all");
   const [duration, setDuration] = useState("all");
+  const [showJoinedOnly, setShowJoinedOnly] = useState(false);
+  const [joinMessage, setJoinMessage] = useState(null);
+  const [joiningId, setJoiningId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMealPlans = async () => {
       try {
         const { data } = await AxiosInstance.get("/api/meal-plans/");
-        setMealPlans(data);
+        const plansWithDisplay = data.map(plan => ({
+          ...plan,
+          plan_type_display: plan.plan_type_display || getPlanTypeDisplay(plan.plan_type),
+          imageUrl: plan.image_url
+        }));
+        setMealPlans(plansWithDisplay);
       } catch (error) {
         console.error("Error fetching meal plans:", error);
       }
     };
-    fetchMealPlans();
-  }, []);
 
-  const filteredPlans = mealPlans.filter((plan) => {
-    const matchType = planType === "all" || plan.plan_type === planType;
-    const matchDuration = duration === "all" || plan.duration_weeks === parseInt(duration);
-    return matchType && matchDuration;
-  });
+    const fetchJoinedPlans = async () => {
+      try {
+        const { data } = await AxiosInstance.get("/api/meal-plan-users/");
+        const ids = data.map(item => item.meal_plan);
+        setJoinedPlans(ids);
+        if (ids.length > 0) {
+          setShowJoinedOnly(true);
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          setJoinedPlans([]);
+          setShowJoinedOnly(false);
+        } else {
+          console.error("Error fetching joined plans:", error);
+        }
+      }
+    };
+
+    fetchMealPlans();
+    fetchJoinedPlans();
+  }, []);
 
   const getPlanTypeDisplay = (type) => {
     const typeMap = {
@@ -40,23 +63,69 @@ const MealPlan = () => {
     return typeMap[type] || type;
   };
 
+  const handleJoinPlan = async (planId) => {
+    if (joinedPlans.length > 0) {
+      setJoinMessage("You can only join one plan at a time.");
+      setTimeout(() => setJoinMessage(null), 3000);
+      return;
+    }
+
+    try {
+      setJoiningId(planId);
+      const { data } = await AxiosInstance.post("/api/meal-plan-users/", { meal_plan: planId });
+      setJoinMessage("Successfully joined the meal plan!");
+      setJoinedPlans([planId]);
+      setShowJoinedOnly(true);
+    } catch (error) {
+      console.error("Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      setJoinMessage(
+        error.response?.data?.detail ||
+        error.response?.data?.non_field_errors?.[0] ||
+        "Error joining the plan"
+      );
+    } finally {
+      setJoiningId(null);
+      setTimeout(() => setJoinMessage(null), 3000);
+    }
+  };
+
+  const filteredPlans = mealPlans.filter((plan) => {
+    if (showJoinedOnly && !joinedPlans.includes(plan.id)) {
+      return false;
+    }
+    const matchType = planType === "all" || plan.plan_type === planType;
+    const matchDuration = duration === "all" || plan.duration_weeks === parseInt(duration);
+    return matchType && matchDuration;
+  });
+
   return (
     <div className="fitness-container">
       <div className="fitness-content">
-        {/* Combined header with icon and filters */}
-        <div className="fitness-header-container">
-          <div className="header-icon-title">
-            <FaHamburger className="fitness-plan-icon" />
-            <h1 className="fitness-header">Meal Plans</h1>
-
-
-            <p className="meals-subheader">
-                Browse personalized meal plans tailored to your Dietery Goals.
-            </p>
-
+        <div className="fitness-section">
+          <div className="running-icon">
+            <FaHamburger style={{ color: 'white' }} />
           </div>
-          
+          <h1 className="fitness-header">Meal Plans</h1>
+          <p className="fitness-subheader">
+            Browse personalized meal plans tailored to your Dietary Goals.
+          </p>
+
+          {joinMessage && <div className="join-message">{joinMessage}</div>}
+
           <div className="filters">
+            {joinedPlans.length > 0 && (
+              <button
+                onClick={() => setShowJoinedOnly(!showJoinedOnly)}
+                className={`toggle-joined-button ${showJoinedOnly ? 'active' : ''}`}
+              >
+                {showJoinedOnly ? 'Show All Plans' : 'Show Only Joined Plans'}
+              </button>
+            )}
+
             <select
               value={planType}
               onChange={(e) => setPlanType(e.target.value)}
@@ -93,11 +162,10 @@ const MealPlan = () => {
                 className="fitness-card"
                 onClick={() => navigate(`/mealplan-detail/${plan.id}`)}
               >
-                {/* Image at the top */}
-                {plan.image_url && (
+                {plan.imageUrl && (
                   <div className="card-image-container">
                     <img
-                      src={plan.image_url}
+                      src={plan.imageUrl}
                       alt={plan.name || "Meal plan"}
                       className="fitness-image"
                       onError={(e) => {
@@ -108,12 +176,10 @@ const MealPlan = () => {
                 )}
 
                 <div className="card-body">
-                  {/* Title below image */}
                   <h3 className="card-title">
                     {plan.name || "Untitled Meal Plan"}
                   </h3>
 
-                  {/* Description below title */}
                   {plan.description && (
                     <p className="card-description">
                       {plan.description.length > 100 
@@ -122,11 +188,10 @@ const MealPlan = () => {
                     </p>
                   )}
 
-                  {/* Details at the bottom */}
                   <div className="card-details">
                     <div className="detail-item">
                       <FaUtensils className="detail-icon" />
-                      <span>{getPlanTypeDisplay(plan.plan_type)}</span>
+                      <span>{plan.plan_type_display || getPlanTypeDisplay(plan.plan_type)}</span>
                     </div>
 
                     <div className="detail-item">
@@ -146,22 +211,33 @@ const MealPlan = () => {
                   </div>
                 </div>
 
-                <div className="card-footer">
-                  <button 
-                    className="view-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/mealplan-detail/${plan.id}`);
+                <div className="card-footer" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    className={`join-button ${joinedPlans.includes(plan.id) ? 'joined' : ''}`}
+                    onClick={() => {
+                      if (!joinedPlans.includes(plan.id)) {
+                        handleJoinPlan(plan.id);
+                      }
                     }}
+                    disabled={joinedPlans.includes(plan.id) || (joinedPlans.length > 0 && !joinedPlans.includes(plan.id)) || joiningId === plan.id}
+                    aria-disabled={joinedPlans.includes(plan.id) || (joinedPlans.length > 0 && !joinedPlans.includes(plan.id)) || joiningId === plan.id}
                   >
-                    View Plan
+                    {joinedPlans.includes(plan.id)
+                      ? 'Joined'
+                      : joiningId === plan.id
+                      ? 'Joining...'
+                      : joinedPlans.length > 0
+                      ? 'Already in a Plan'
+                      : 'Join Plan'}
                   </button>
                 </div>
               </div>
             ))
           ) : (
             <div className="no-plans-message">
-              No meal plans match your selected filters.
+              {showJoinedOnly 
+                ? "You haven't joined any plans yet." 
+                : "No meal plans match your filters."}
             </div>
           )}
         </div>

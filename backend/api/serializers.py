@@ -418,6 +418,31 @@ class FitnessPlanSerializer(serializers.ModelSerializer):
             )
         return fitness_plan
 
+from rest_framework import serializers
+from .models import FitnessPlanUser, FitnessPlan
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class FitnessPlanUserSerializer(serializers.ModelSerializer):
+    fitness_plan = serializers.PrimaryKeyRelatedField(queryset=FitnessPlan.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = FitnessPlanUser
+        fields = ['id', 'user', 'fitness_plan', 'joined_at']
+        read_only_fields = ['joined_at']
+
+    def validate(self, data):
+        # Check if the user has already joined the plan
+        if FitnessPlanUser.objects.filter(
+            user=data['user'],
+            fitness_plan=data['fitness_plan']
+        ).exists():
+            raise serializers.ValidationError("You have already joined this fitness plan.")
+        return data
+
+
 class MealFoodSerializer(serializers.ModelSerializer):
     food = FoodSerializer(read_only=True)
     food_id = serializers.PrimaryKeyRelatedField(
@@ -491,7 +516,28 @@ class MealPlanSerializer(serializers.ModelSerializer):
             return self.context['request'].build_absolute_uri(obj.image.url)
         return None
     
-    
+from rest_framework import serializers
+from .models import MealPlanUser, MealPlan
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class MealPlanUserSerializer(serializers.ModelSerializer):
+    meal_plan = serializers.PrimaryKeyRelatedField(queryset=MealPlan.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = MealPlanUser
+        fields = ['id', 'user', 'meal_plan', 'joined_at']
+        read_only_fields = ['joined_at']
+
+    def validate(self, data):
+        if MealPlanUser.objects.filter(
+            user=data['user'],
+            meal_plan=data['meal_plan']
+        ).exists():
+            raise serializers.ValidationError("You have already joined this meal plan.")
+        return data   
     
 
 

@@ -18,6 +18,7 @@ const MealPlanDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeDay, setActiveDay] = useState("monday");
+  const [isJoined, setIsJoined] = useState(false);
 
   // Memoized helper functions
   const getPlanTypeIcon = useMemo(() => (type) => {
@@ -58,12 +59,21 @@ const MealPlanDetail = () => {
   useEffect(() => {
     const fetchPlanDetails = async () => {
       try {
-        const { data } = await AxiosInstance.get(`/api/meal-plans/${id}/`);
-        console.log("Fetched data:", data);  // Check the API response structure
-        setPlan(data);
+        const [planResponse, joinedResponse] = await Promise.all([
+          AxiosInstance.get(`/api/meal-plans/${id}/`),
+          AxiosInstance.get("/api/meal-plan-users/")
+        ]);
+        console.log("Plan Response:", planResponse.data);
+        console.log("Joined Response:", joinedResponse.data);
+        setPlan(planResponse.data);
+        const joinedPlanIds = joinedResponse.data.map(item => item.meal_plan);
+        setIsJoined(joinedPlanIds.includes(parseInt(id)));
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to fetch meal plan details");
-        console.error("API Error:", err.response || err);
+        const errorMessage = err.response
+          ? `API Error: ${err.response.status} - ${err.response.data?.detail || "No detail provided"}`
+          : `Network Error: ${err.message}`;
+        console.error("Error fetching plan details:", errorMessage);
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -71,6 +81,21 @@ const MealPlanDetail = () => {
 
     fetchPlanDetails();
   }, [id]);
+
+  const handleJoinPlan = async () => {
+    try {
+      const response = await AxiosInstance.post("/api/meal-plan-users/", { meal_plan: id });
+      console.log("Join Plan Response:", response.data);
+      setIsJoined(true);
+      alert("Successfully joined the meal plan!");
+    } catch (error) {
+      const errorMessage = error.response
+        ? `Join Error: ${error.response.status} - ${error.response.data?.detail || "No detail provided"}`
+        : `Network Error: ${error.message}`;
+      console.error("Error joining plan:", errorMessage);
+      alert(`Failed to join the plan: ${errorMessage}`);
+    }
+  };
 
   // Memoized derived data
   const { mealsByDay, daysWithMeals } = useMemo(() => {
@@ -94,8 +119,8 @@ const MealPlanDetail = () => {
 
   return (
     <div className="meal-plan-container">
-      <Link to="/mealsplan" className="back-link">
-        &larr; Back to Meal Plans
+      <Link to="/mealplan" className="back-link">
+        ← Back to Meal Plans
       </Link>
 
       <article className="meal-plan-content">
@@ -104,7 +129,7 @@ const MealPlanDetail = () => {
           <div className="plan-meta">
             <span className="meta-item">
               {getPlanTypeIcon(plan.plan_type)}
-              {plan.plan_type_display || plan.plan_type}
+              <span className="capitalize">{plan.plan_type_display || plan.plan_type}</span>
             </span>
             <span className="meta-item">
               <FaCalendarAlt /> {plan.duration_weeks} weeks
@@ -127,6 +152,14 @@ const MealPlanDetail = () => {
         <section className="plan-description">
           <h2>Plan Overview</h2>
           <p>{plan.description || "No description available."}</p>
+          <button
+            className={`join-button ${isJoined ? 'joined' : ''}`}
+            onClick={handleJoinPlan}
+            disabled={isJoined}
+            aria-label={isJoined ? 'Plan already joined' : 'Join this meal plan'}
+          >
+            {isJoined ? 'Joined' : 'Join Plan'}
+          </button>
         </section>
 
         <section className="meal-schedule">
