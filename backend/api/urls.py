@@ -49,8 +49,6 @@ router.register(r'api/foods', FoodViewSet, basename='foods')
 # User management routes
 router.register(r'api/users', UserViewSet, basename='users')
 router.register(r'instructors', InstructorViewSet, basename='instructor')
-
-
 router.register(r'api/fitness-plan-users', FitnessPlanUserViewSet, basename='fitness-plan-users')
 router.register(r'api/meal-plan-users', MealPlanUserViewSet, basename='meal-plan-users')
 
@@ -59,8 +57,7 @@ urlpatterns = [
     path('api/user/profile/', user_profile, name='user-profile'),
     path('api/instructor/dashboard/', instructor_dashboard, name='instructor-dashboard'),
     path('api/clients/<int:client_id>/', client_details, name='client-details'),
-    path('api/chat/<int:instructor_id>/', chat_messages, name='chat-messages'),
-    path('api/chat/<int:other_user_id>/', chat_messages, name='chat-messages'),
+    path('api/chat/<int:user_id>/', chat_messages, name='chat-messages'),
     path('api/chat/', chat_messages, name='chat-list'),
-    path('api/user/assigned-instructors/', assigned_instructors, name='assigned-instructors'),  # Moved to path
+    path('api/user/assigned-instructors/', assigned_instructors, name='assigned-instructors'),
 ]

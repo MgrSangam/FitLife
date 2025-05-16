@@ -6,7 +6,7 @@ import { IoMdSend } from 'react-icons/io';
 import './Chat.css';
 
 const Chat = () => {
-  const { otherUserId } = useParams();
+  const { userId } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -15,14 +15,41 @@ const Chat = () => {
   const [error, setError] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const [currentUserUsername, setCurrentUserUsername] = useState(null);
+
+  // Fetch current user's username
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        // First, try to get from localStorage
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser && storedUser.username) {
+          setCurrentUserUsername(storedUser.username);
+          console.log('Current username from localStorage:', storedUser.username);
+        } else {
+          // Fallback: Fetch from API if localStorage is missing or invalid
+          const response = await AxiosInstance.get('/api/user/profile/');
+          const username = response.data.username;
+          setCurrentUserUsername(username);
+          console.log('Current username from API:', username);
+          // Optionally update localStorage for future use
+          localStorage.setItem('user', JSON.stringify({ username, ...response.data }));
+        }
+      } catch (err) {
+        console.error('Error fetching current user:', err);
+        setError('Failed to load current user data');
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
       try {
         const [messagesRes, userRes] = await Promise.all([
-          AxiosInstance.get(`/api/chat/${otherUserId}/`),
-          AxiosInstance.get(`/api/users/${otherUserId}/`)
+          AxiosInstance.get(`/api/chat/${userId}/`),
+          AxiosInstance.get(`/api/users/${userId}/`)
         ]);
         
         if (isMounted) {
@@ -53,7 +80,7 @@ const Chat = () => {
     return () => {
       isMounted = false;
     };
-  }, [otherUserId]);
+  }, [userId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -61,7 +88,7 @@ const Chat = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      AxiosInstance.get(`/api/chat/${otherUserId}/`)
+      AxiosInstance.get(`/api/chat/${userId}/`)
         .then(response => {
           setMessages(response.data);
         })
@@ -71,7 +98,7 @@ const Chat = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [otherUserId]);
+  }, [userId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,11 +106,11 @@ const Chat = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || isSending) return;
+    if (!newMessage.trim() || isSending || !currentUserUsername) return;
 
     setIsSending(true);
     try {
-      const response = await AxiosInstance.post(`/api/chat/${otherUserId}/`, {
+      const response = await AxiosInstance.post(`/api/chat/${userId}/`, {
         message: newMessage
       });
       setMessages(prev => [...prev, response.data]);
@@ -105,7 +132,7 @@ const Chat = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !currentUserUsername) {
     return (
       <div className="chat-container">
         <div className="chat-header">
@@ -146,6 +173,10 @@ const Chat = () => {
     );
   }
 
+  console.log('Messages:', messages.map(m => ({ sender: m.sender, message: m.message })));
+  console.log('Current User:', currentUserUsername);
+  console.log('Other User:', otherUser.username);
+
   return (
     <div className="chat-container">
       <div className="chat-header">
@@ -182,9 +213,12 @@ const Chat = () => {
           messages.map((message) => (
             <div 
               key={message.id} 
-              className={`message ${message.sender === otherUser.id ? 'received' : 'sent'}`}
+              className={`message ${message.sender === currentUserUsername ? 'sent' : 'received'}`}
             >
               <div className="message-content">
+                <span className="sender-name">
+                  {message.sender === currentUserUsername ? 'Me' : otherUser.username}
+                </span>
                 <p>{message.message}</p>
                 <span className="message-time">
                   {new Date(message.timestamp).toLocaleTimeString([], { 

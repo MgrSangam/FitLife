@@ -17,7 +17,6 @@ import {
   FaDumbbell
 } from 'react-icons/fa';
 import './Profile.css';
-import Chat from './Chat';
 
 const Profile = () => {
   const [assignedInstructors, setAssignedInstructors] = useState([]);
@@ -154,7 +153,7 @@ const Profile = () => {
             <div className="profile-chat-header">
               <h3>Chat with {activeChat.username}</h3>
               <button onClick={closeChat} className="close-chat-btn">
-                &times;
+                ×
               </button>
             </div>
             <div className="profile-chat-messages">
@@ -211,148 +210,147 @@ const Profile = () => {
 
       <div className="profile-content">
         {editing ? (
-                    <form onSubmit={handleSubmit} className="profile-form">
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>First Name</label>
-                        <input
-                          type="text"
-                          name="first_name"
-                          value={formData.first_name}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Last Name</label>
-                        <input
-                          type="text"
-                          name="last_name"
-                          value={formData.last_name}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                    </div>
+          <form onSubmit={handleSubmit} className="profile-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
         
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Phone</label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                    </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
         
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Gender</label>
-                        <select
-                          name="gender"
-                          value={formData.gender}
-                          onChange={handleInputChange}
-                        >
-                          <option value="">Select</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                          <option value="other">Other</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label>Birth Date</label>
-                        <input
-                          type="date"
-                          name="birthday"
-                          value={formData.birthday}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                    </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Gender</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Birth Date</label>
+                <input
+                  type="date"
+                  name="birthday"
+                  value={formData.birthday}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
         
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Weight (kg)</label>
-                        <input
-                          type="number"
-                          name="weight"
-                          value={formData.weight}
-                          onChange={handleInputChange}
-                          step="0.1"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Height (cm)</label>
-                        <input
-                          type="number"
-                          name="height"
-                          value={formData.height}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                    </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Weight (kg)</label>
+                <input
+                  type="number"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  step="0.1"
+                />
+              </div>
+              <div className="form-group">
+                <label>Height (cm)</label>
+                <input
+                  type="number"
+                  name="height"
+                  value={formData.height}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
         
-                    <div className="form-group">
-                      <label>Location</label>
-                      <input
-                        type="text"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                      />
-                    </div>
+            <div className="form-group">
+              <label>Location</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+              />
+            </div>
         
-                    <div className="form-group">
-                      <label>Fitness Goals</label>
-                      <textarea
-                        name="fitness_goals"
-                        value={formData.fitness_goals}
-                        onChange={handleInputChange}
-                        rows="2"
-                        placeholder="E.g., Lose weight, build muscle, improve endurance"
-                      />
-                    </div>
+            <div className="form-group">
+              <label>Fitness Goals</label>
+              <textarea
+                name="fitness_goals"
+                value={formData.fitness_goals}
+                onChange={handleInputChange}
+                rows="2"
+                placeholder="E.g., Lose weight, build muscle, improve endurance"
+              />
+            </div>
         
-                    <div className="form-group">
-                      <label>Preferred Workouts</label>
-                      <textarea
-                        name="preferred_workouts"
-                        value={formData.preferred_workouts}
-                        onChange={handleInputChange}
-                        rows="2"
-                        placeholder="E.g., Weight lifting, yoga, running"
-                      />
-                    </div>
+            <div className="form-group">
+              <label>Preferred Workouts</label>
+              <textarea
+                name="preferred_workouts"
+                value={formData.preferred_workouts}
+                onChange={handleInputChange}
+                rows="2"
+                placeholder="E.g., Weight lifting, yoga, running"
+              />
+            </div>
         
-                    <div className="form-group">
-                      <label>Bio</label>
-                      <textarea
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleInputChange}
-                        rows="3"
-                      />
-                    </div>
+            <div className="form-group">
+              <label>Bio</label>
+              <textarea
+                name="bio"
+                value={formData.bio}
+                onChange={handleInputChange}
+                rows="3"
+              />
+            </div>
         
-                    <div className="form-actions">
-                      <button type="submit" className="save-btn">
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-        
+            <div className="form-actions">
+              <button type="submit" className="save-btn">
+                Save Changes
+              </button>
+            </div>
+          </form>
         ) : (
           <div className="profile-details">
             {assignedInstructors.length > 0 && (
@@ -392,7 +390,7 @@ const Profile = () => {
               </div>
             )}
 
-<div className="info-grid">
+            <div className="info-grid">
               <div className="info-item">
                 <FaEnvelope className="info-icon" />
                 <div className="info-content">

@@ -7,9 +7,10 @@ import {
   FaPhone, 
   FaBirthdayCake,
   FaCalendarAlt,
-  FaUserTie
+  FaUserTie,
+  FaComments
 } from "react-icons/fa";
-import axiosInstance from "./Axiosinstance";
+import AxiosInstance from "./Axiosinstance";
 import "./Instructor.css";
 
 const Instructor = () => {
@@ -20,62 +21,58 @@ const Instructor = () => {
   const [clients, setClients] = useState([]);
 
   useEffect(() => {
-// Instructor.js - Update the fetch function
-const fetchInstructorData = async () => {
-  try {
-    const token = localStorage.getItem("authToken");
-    const user = JSON.parse(localStorage.getItem("user"));
+    const fetchInstructorData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!token || !user?.is_instructor) {
-      navigate("/login", { replace: true });
-      return;
-    }
+        if (!token || !user?.is_instructor) {
+          navigate("/login", { replace: true });
+          return;
+        }
 
-    const response = await axiosInstance.get('/api/instructor/dashboard/');
-    
-    // Transform clients data if needed
-    const clients = response.data.clients || [];
-    
-    setInstructorData({
-      ...response.data,
-      clients: clients.map(client => ({
-        ...client,
-        // Ensure all required fields exist
-        username: client.username || '',
-        email: client.email || '',
-        age: client.age || null
-      }))
-    });
-  } catch (err) {
-    const errorMessage = err.response?.data?.error || 
-                       err.message || 
-                       "Failed to fetch instructor data";
-    setError(errorMessage);
-    console.error("Error details:", err.response?.data);
-    
-    if (err.response?.status === 403) {
-      navigate("/login", { replace: true });
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
+        const response = await AxiosInstance.get('/api/instructor/dashboard/');
+        
+        const clients = response.data.clients || [];
+        
+        setInstructorData({
+          ...response.data,
+          clients: clients.map(client => ({
+            ...client,
+            username: client.username || '',
+            email: client.email || '',
+            age: client.age || null
+          }))
+        });
+      } catch (err) {
+        const errorMessage = err.response?.data?.error || 
+                           err.message || 
+                           "Failed to fetch instructor data";
+        setError(errorMessage);
+        console.error("Error details:", err.response?.data);
+        
+        if (err.response?.status === 403) {
+          navigate("/login", { replace: true });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchInstructorData();
   }, [navigate]);
 
   useEffect(() => {
-     const fetchClients = async () => {
-    try {
-      const response = await AxiosInstance.get('/api/chat/');
-      setClients(response.data);
-    } catch (err) {
-      console.error('Error fetching clients:', err);
-    }
-  };
-  fetchClients();
-}, []);
+    const fetchClients = async () => {
+      try {
+        const response = await AxiosInstance.get('/api/chat/');
+        setClients(response.data);
+      } catch (err) {
+        console.error('Error fetching clients:', err);
+      }
+    };
+    fetchClients();
+  }, []);
 
   const handleClientClick = (clientId) => {
     navigate(`/clients/${clientId}`);
@@ -97,6 +94,7 @@ const fetchInstructorData = async () => {
           <strong>Error: </strong>
           <span>{error}</span>
         </div>
+ Focal point: Instructor dashboard
         <button 
           className="retry-button"
           onClick={() => window.location.reload()}
@@ -225,26 +223,26 @@ const fetchInstructorData = async () => {
       </div>
 
       {clients.length > 0 && (
-  <div className="clients-section">
-    <h3>Your Clients</h3>
-    <div className="clients-list">
-      {clients.map((client) => (
-        <div key={client.id} className="client-card">
-          <div className="client-info">
-            <h4>{client.username}</h4>
-            <p>{client.email}</p>
+        <div className="clients-section">
+          <h3>Your Clients</h3>
+          <div className="clients-list">
+            {clients.map((client) => (
+              <div key={client.id} className="client-card">
+                <div className="client-info">
+                  <h4>{client.username}</h4>
+                  <p>{client.email}</p>
+                </div>
+                <button 
+                  className="chat-btn"
+                  onClick={() => navigate(`/chat/${client.id}`)}
+                >
+                  <FaComments /> Message
+                </button>
+              </div>
+            ))}
           </div>
-          <button 
-            className="chat-btn"
-            onClick={() => navigate(`/chat/${client.id}`)}
-          >
-            <FaComments /> Message
-          </button>
         </div>
-      ))}
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 };

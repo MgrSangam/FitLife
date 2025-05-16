@@ -22,6 +22,7 @@ import MealPlanDetail from './components/MealPlanDetails'
 import AdminPage from './components/Admin'
 import Profile from './components/Profile'
 import Payment from './components/Payment'
+import Chat from './components/Chat' 
 
 function App() {
   const location = useLocation()
@@ -63,7 +64,7 @@ function App() {
                   <Route path='/mealplan-detail/:id' element={<MealPlanDetail/>} />
                   <Route path='/profile' element={<Profile/>} />
                   <Route path='/payment' element={<Payment/>} />
-
+                  <Route path='/chat/:userId' element={<Chat />} />
               </Route>
              
               
