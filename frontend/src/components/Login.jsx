@@ -31,7 +31,6 @@ const Login = () => {
     };
     let isValid = true;
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -41,7 +40,6 @@ const Login = () => {
       isValid = false;
     }
 
-    // Password validation
     if (!formData.password) {
       newErrors.password = "Password is required";
       isValid = false;
@@ -60,8 +58,6 @@ const Login = () => {
       ...prev,
       [name]: value,
     }));
-    
-    // Clear error for the current field when typing
     if (errors[name] || errors.form) {
       setErrors(prev => ({
         ...prev,
@@ -74,40 +70,37 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     if (!validateForm()) {
       setLoading(false);
       return;
     }
-  
+
     try {
       const response = await AxiosInstance.post("/login/", {
         email: formData.email.trim(),
         password: formData.password
       });
-  
-      console.log("Login response:", response);
-  
+
+      console.log("Login response:", response.data);
+
       if (response.status === 200 && response.data?.token) {
         const user = response.data.user || {};
-  
-        // Store authentication data
         localStorage.setItem("authToken", response.data.token);
         localStorage.setItem("user", JSON.stringify(user));
-  
-        // Set the token for future requests
         AxiosInstance.defaults.headers.common["Authorization"] = `Token ${response.data.token}`;
-  
+
         const isAdmin = user.is_superuser === true || user.is_superuser === "true";
         const isInstructor = user.is_instructor === true || user.is_instructor === "true";
-  
-        // Redirect based on role
+
         if (isAdmin) {
           navigate("/admin", { replace: true });
         } else if (isInstructor) {
           navigate("/instructor", { replace: true });
+          // Refresh user data to ensure correctness
+          const profileResponse = await AxiosInstance.get('/api/user/profile/');
+          localStorage.setItem("user", JSON.stringify(profileResponse.data));
         } else {
-          // Regular users go directly to home
           navigate("/home", { replace: true });
         }
       } else {
@@ -115,12 +108,10 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
-      
       let errorMessage = "Login failed. Please try again.";
       if (err.response) {
         errorMessage = err.response.data?.error || err.message;
       }
-  
       setErrors(prev => ({
         ...prev,
         form: errorMessage
@@ -129,7 +120,7 @@ const Login = () => {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="login-container">
       <div className="login-card">
@@ -184,7 +175,7 @@ const Login = () => {
             <Link to="/password-reset" className="forgot-password-text">
               Forgot Password?
             </Link>
-            </div>
+          </div>
 
           <button
             type="submit"

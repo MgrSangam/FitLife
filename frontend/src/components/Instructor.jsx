@@ -19,6 +19,9 @@ const Instructor = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     const fetchInstructorData = async () => {
@@ -75,7 +78,39 @@ const Instructor = () => {
   }, []);
 
   const handleClientClick = (clientId) => {
-    navigate(`/clients/${clientId}`);
+    navigate(`/chat/${clientId}`);
+  };
+
+  const openMessageForm = (client) => {
+    setSelectedClient(client);
+  };
+
+  const closeMessageForm = () => {
+    setSelectedClient(null);
+    setNewMessage('');
+  };
+
+  const sendMessageToClient = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || isSending || !selectedClient) return;
+
+    setIsSending(true);
+    try {
+      const response = await AxiosInstance.post(`/api/chat/${selectedClient.id}/`, {
+        message: newMessage
+      });
+      console.log('Message sent:', response.data);
+      setNewMessage('');
+      closeMessageForm();
+    } catch (err) {
+      let errorMessage = 'Failed to send message';
+      if (err.response) {
+        errorMessage = `Error ${err.response.status}: ${err.response.data?.message || err.response.data?.error || 'Unknown error'}`;
+      }
+      alert(errorMessage);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   if (loading) {
@@ -94,7 +129,6 @@ const Instructor = () => {
           <strong>Error: </strong>
           <span>{error}</span>
         </div>
- Focal point: Instructor dashboard
         <button 
           className="retry-button"
           onClick={() => window.location.reload()}
@@ -234,12 +268,43 @@ const Instructor = () => {
                 </div>
                 <button 
                   className="chat-btn"
-                  onClick={() => navigate(`/chat/${client.id}`)}
+                  onClick={() => openMessageForm(client)}
                 >
-                  <FaComments /> Message
+                  <FaComments /> Quick Message
+                </button>
+                <button 
+                  className="chat-btn"
+                  onClick={() => handleClientClick(client.id)}
+                >
+                  <FaComments /> Open Chat
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {selectedClient && (
+        <div className="message-overlay">
+          <div className="message-form-container">
+            <h3>Send Message to {selectedClient.username}</h3>
+            <form onSubmit={sendMessageToClient} className="message-form">
+              <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message here..."
+                rows="3"
+                disabled={isSending}
+              />
+              <div className="form-actions">
+                <button type="submit" disabled={!newMessage.trim() || isSending}>
+                  {isSending ? 'Sending...' : 'Send'}
+                </button>
+                <button type="button" onClick={closeMessageForm}>
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

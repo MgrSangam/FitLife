@@ -655,31 +655,28 @@ def client_details(request, client_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import models
+from .models import ChatMessage, CustomUser as User
+from .serializers import ChatMessageSerializer
+import logging
+
+logger = logging.getLogger(__name__)
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def chat_messages(request, user_id=None):
-    if request.method == 'GET':
-        if user_id:
-            try:
+    try:
+        if request.method == 'GET':
+            if user_id:
+                # Get conversation with specific user
                 other_user = User.objects.get(id=user_id)
                 
-                # Check if the users can chat
-                can_chat = False
-                
-                if request.user.is_instructor:
-                    if request.user.specialization == 'trainer':
-                        can_chat = other_user.subscription.trainer == request.user
-                    elif request.user.specialization == 'nutritionist':
-                        can_chat = other_user.subscription.nutritionist == request.user
-                else:
-                    try:
-                        subscription = request.user.subscription
-                        can_chat = (subscription.trainer and subscription.trainer.id == other_user.id) or \
-                                   (subscription.nutritionist and subscription.nutritionist.id == other_user.id)
-                    except AttributeError:
-                        pass
-                
-                if not can_chat:
+                # Check if users can chat with each other
+                if not can_users_chat(request.user, other_user):
                     return Response(
                         {"error": "You can only message your assigned instructors/clients"},
                         status=status.HTTP_403_FORBIDDEN
@@ -692,69 +689,77 @@ def chat_messages(request, user_id=None):
                 
                 serializer = ChatMessageSerializer(messages, many=True)
                 return Response(serializer.data)
-                
-            except User.DoesNotExist:
-                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            if request.user.is_instructor:
-                if request.user.specialization == 'trainer':
-                    users = User.objects.filter(subscription__trainer=request.user)
-                elif request.user.specialization == 'nutritionist':
-                    users = User.objects.filter(subscription__nutritionist=request.user)
-                else:
-                    users = User.objects.none()
             else:
-                try:
-                    subscription = request.user.subscription
-                    users = User.objects.none()
-                    if subscription.trainer:
-                        users = users | User.objects.filter(id=subscription.trainer.id)
-                    if subscription.nutritionist:
-                        users = users | User.objects.filter(id=subscription.nutritionist.id)
-                except AttributeError:
-                    users = User.objects.none()
-            
-            serializer = CustomUserSerializer(users, many=True)
-            return Response(serializer.data)
-    
-    elif request.method == 'POST':
-        if not user_id:
-            return Response({"error": "Recipient ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+                # Get list of users the current user can chat with
+                if request.user.is_instructor:
+                    if request.user.specialization == 'trainer':
+                        users = User.objects.filter(subscription__trainer=request.user)
+                    elif request.user.specialization == 'nutritionist':
+                        users = User.objects.filter(subscription__nutritionist=request.user)
+                    else:
+                        users = User.objects.none()
+                else:
+                    try:
+                        subscription = request.user.subscription
+                        users = User.objects.none()
+                        if subscription.trainer:
+                            users = users | User.objects.filter(id=subscription.trainer.id)
+                        if subscription.nutritionist:
+                            users = users | User.objects.filter(id=subscription.nutritionist.id)
+                    except AttributeError:
+                        users = User.objects.none()
+                
+                serializer = UserSerializer(users, many=True)
+                return Response(serializer.data)
         
-        try:
+        elif request.method == 'POST':
+            if not user_id:
+                return Response({"error": "Recipient ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
             recipient = User.objects.get(id=user_id)
             
-            can_chat = False
-            if request.user.is_instructor:
-                if request.user.specialization == 'trainer':
-                    can_chat = recipient.subscription.trainer == request.user
-                elif request.user.specialization == 'nutritionist':
-                    can_chat = recipient.subscription.nutritionist == request.user
-            else:
-                try:
-                    subscription = request.user.subscription
-                    can_chat = (subscription.trainer and subscription.trainer.id == recipient.id) or \
-                               (subscription.nutritionist and subscription.nutritionist.id == recipient.id)
-                except AttributeError:
-                    pass
-            
-            if not can_chat:
+            if not can_users_chat(request.user, recipient):
                 return Response(
                     {"error": "You can only message your assigned instructors/clients"},
                     status=status.HTTP_403_FORBIDDEN
                 )
             
+            message_text = request.data.get('message', '').strip()
+            if not message_text:
+                return Response({"error": "Message cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
+            
             message = ChatMessage.objects.create(
                 sender=request.user,
                 recipient=recipient,
-                message=request.data.get('message')
+                message=message_text
             )
-            serializer = ChatMessageSerializer(message)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
             
-        except User.DoesNotExist:
-            return Response({"error": "Recipient not found"}, status=status.HTTP_404_NOT_FOUND)
+            # Update the serializer to include sender username
+            serializer = ChatMessageSerializer(message, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error in chat_messages: {str(e)}")
+        return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+def can_users_chat(user1, user2):
+    """Check if two users are allowed to chat with each other"""
+    if user1.is_instructor:
+        # Instructor can chat with their clients
+        if user1.specialization == 'trainer':
+            return user2.subscription.trainer == user1
+        elif user1.specialization == 'nutritionist':
+            return user2.subscription.nutritionist == user1
+    else:
+        # Client can chat with their instructors
+        try:
+            subscription = user1.subscription
+            return (subscription.trainer == user2) or (subscription.nutritionist == user2)
+        except AttributeError:
+            return False
+    return False
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

@@ -27,6 +27,7 @@ const Profile = () => {
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -120,8 +121,9 @@ const Profile = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isSending || !activeChat) return;
 
+    setIsSending(true);
     try {
       const response = await AxiosInstance.post(`/api/chat/${activeChat.id}/`, {
         message: newMessage
@@ -129,7 +131,13 @@ const Profile = () => {
       setMessages([...messages, response.data]);
       setNewMessage('');
     } catch (err) {
-      console.error('Error sending message:', err);
+      let errorMessage = 'Failed to send message';
+      if (err.response) {
+        errorMessage = `Error ${err.response.status}: ${err.response.data?.message || err.response.data?.error || 'Unknown error'}`;
+      }
+      alert(errorMessage);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -139,6 +147,7 @@ const Profile = () => {
 
   const closeChat = () => {
     setActiveChat(null);
+    setNewMessage('');
   };
 
   if (loading) return <div className="loading">Loading profile...</div>;
@@ -148,14 +157,9 @@ const Profile = () => {
   return (
     <div className="profile-container">
       {activeChat && (
-        <div className="profile-chat-overlay">
-          <div className="profile-chat-container">
-            <div className="profile-chat-header">
-              <h3>Chat with {activeChat.username}</h3>
-              <button onClick={closeChat} className="close-chat-btn">
-                ×
-              </button>
-            </div>
+        <div className="message-overlay">
+          <div className="message-form-container">
+            <h3>Send Message to {activeChat.username}</h3>
             <div className="profile-chat-messages">
               {messages.map((message) => (
                 <div
@@ -174,16 +178,22 @@ const Profile = () => {
                 </div>
               ))}
             </div>
-            <form onSubmit={handleSendMessage} className="profile-chat-form">
-              <input
-                type="text"
+            <form onSubmit={handleSendMessage} className="message-form">
+              <textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Type your message here..."
+                rows="3"
+                disabled={isSending}
               />
-              <button type="submit">
-                <FaPaperPlane />
-              </button>
+              <div className="form-actions">
+                <button type="submit" disabled={!newMessage.trim() || isSending}>
+                  {isSending ? 'Sending...' : 'Send'}
+                </button>
+                <button type="button" onClick={closeChat}>
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
         </div>
