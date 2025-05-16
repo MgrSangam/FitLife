@@ -60,6 +60,7 @@ urlpatterns = [
     path('api/instructor/dashboard/', instructor_dashboard, name='instructor-dashboard'),
     path('api/clients/<int:client_id>/', client_details, name='client-details'),
     path('api/chat/<int:instructor_id>/', chat_messages, name='chat-messages'),
+    path('api/chat/<int:other_user_id>/', chat_messages, name='chat-messages'),
     path('api/chat/', chat_messages, name='chat-list'),
     path('api/user/assigned-instructors/', assigned_instructors, name='assigned-instructors'),  # Moved to path
 ]

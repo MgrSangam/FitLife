@@ -357,9 +357,14 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubscriptionPlan
-        fields = ['id', 'user', 'plan', 'is_active', 'start_date', 'end_date', 'trainer', 'nutritionist']
-        read_only_fields = ['is_active', 'start_date', 'end_date', 'trainer', 'nutritionist', 'user']
-
+        fields = [
+            'id', 'user', 'plan', 'is_active', 'start_date', 
+            'end_date', 'trainer', 'nutritionist'
+        ]
+        read_only_fields = [
+            'is_active', 'start_date', 'end_date', 
+            'trainer', 'nutritionist', 'user'
+        ]
 class FitnessPlanExerciseSerializer(serializers.ModelSerializer):
     exercise = ExerciseSerializer(read_only=True)
     exercise_id = serializers.PrimaryKeyRelatedField(

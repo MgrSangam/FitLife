@@ -1,40 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AxiosInstance from './Axiosinstance';
-import { FaPaperPlane, FaArrowLeft, FaEllipsisV } from 'react-icons/fa';
+import { FaPaperPlane, FaArrowLeft, FaEllipsisV, FaUserTie, FaUser } from 'react-icons/fa';
 import { IoMdSend } from 'react-icons/io';
 import './Chat.css';
 
 const Chat = () => {
-  const { instructorId } = useParams();
+  const { otherUserId } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [instructor, setInstructor] = useState(null);
+  const [otherUser, setOtherUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Fetch initial data
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
       try {
-        const [messagesRes, instructorRes] = await Promise.all([
-          AxiosInstance.get(`/api/chat/${instructorId}/`),
-          AxiosInstance.get(`/api/users/${instructorId}/`)
+        const [messagesRes, userRes] = await Promise.all([
+          AxiosInstance.get(`/api/chat/${otherUserId}/`),
+          AxiosInstance.get(`/api/users/${otherUserId}/`)
         ]);
         
         if (isMounted) {
           setMessages(messagesRes.data);
-          setInstructor(instructorRes.data);
+          setOtherUser(userRes.data);
         }
       } catch (err) {
         if (isMounted) {
           let errorMessage = 'Failed to load chat';
           if (err.response) {
-            errorMessage = `Error ${err.response.status}: ${err.response.data?.detail || 'Unknown error'}`;
+            errorMessage = `Error ${err.response.status}: ${err.response.data?.detail || err.response.data?.error || 'Unknown error'}`;
           } else if (err.request) {
             errorMessage = 'No response received from server';
           } else {
@@ -54,27 +53,25 @@ const Chat = () => {
     return () => {
       isMounted = false;
     };
-  }, [instructorId]);
+  }, [otherUserId]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Poll for new messages (simple implementation - consider WebSockets for production)
   useEffect(() => {
     const interval = setInterval(() => {
-      AxiosInstance.get(`/api/chat/${instructorId}/`)
+      AxiosInstance.get(`/api/chat/${otherUserId}/`)
         .then(response => {
           setMessages(response.data);
         })
         .catch(err => {
           console.error('Error polling messages:', err);
         });
-    }, 5000); // Poll every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [instructorId]);
+  }, [otherUserId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,7 +83,7 @@ const Chat = () => {
 
     setIsSending(true);
     try {
-      const response = await AxiosInstance.post(`/api/chat/${instructorId}/`, {
+      const response = await AxiosInstance.post(`/api/chat/${otherUserId}/`, {
         message: newMessage
       });
       setMessages(prev => [...prev, response.data]);
@@ -94,7 +91,7 @@ const Chat = () => {
     } catch (err) {
       let errorMessage = 'Failed to send message';
       if (err.response) {
-        errorMessage = `Error ${err.response.status}: ${err.response.data?.message || 'Unknown error'}`;
+        errorMessage = `Error ${err.response.status}: ${err.response.data?.message || err.response.data?.error || 'Unknown error'}`;
       }
       alert(errorMessage);
     } finally {
@@ -136,14 +133,14 @@ const Chat = () => {
     );
   }
 
-  if (!instructor) {
+  if (!otherUser) {
     return (
       <div className="chat-container">
         <div className="chat-header">
           <button onClick={() => navigate(-1)} className="back-button">
             <FaArrowLeft />
           </button>
-          <h2>Instructor not found</h2>
+          <h2>User not found</h2>
         </div>
       </div>
     );
@@ -156,8 +153,20 @@ const Chat = () => {
           <FaArrowLeft />
         </button>
         <div className="header-info">
-          <h2>{instructor.username}</h2>
-          <p>{instructor.specialization === 'trainer' ? 'Personal Trainer' : 'Nutritionist'}</p>
+          <h2>{otherUser.username}</h2>
+          <p>
+            {otherUser.is_instructor ? (
+              <>
+                {otherUser.specialization === 'trainer' ? 'Personal Trainer' : 'Nutritionist'}
+                <FaUserTie style={{ marginLeft: '8px' }} />
+              </>
+            ) : (
+              <>
+                Client
+                <FaUser style={{ marginLeft: '8px' }} />
+              </>
+            )}
+          </p>
         </div>
         <button className="menu-button">
           <FaEllipsisV />
@@ -167,13 +176,13 @@ const Chat = () => {
       <div className="messages-container">
         {messages.length === 0 ? (
           <div className="no-messages">
-            <p>Start your conversation with {instructor.username}</p>
+            <p>Start your conversation with {otherUser.username}</p>
           </div>
         ) : (
           messages.map((message) => (
             <div 
               key={message.id} 
-              className={`message ${message.sender === instructor.id ? 'received' : 'sent'}`}
+              className={`message ${message.sender === otherUser.id ? 'received' : 'sent'}`}
             >
               <div className="message-content">
                 <p>{message.message}</p>

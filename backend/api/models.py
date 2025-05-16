@@ -355,7 +355,6 @@ class SubscriptionPlan(models.Model):
     is_active = models.BooleanField(default=False)
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True, blank=True)
-
     trainer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -364,7 +363,6 @@ class SubscriptionPlan(models.Model):
         limit_choices_to={'is_instructor': True, 'specialization': 'trainer'},
         related_name='trainer_subscriptions'
     )
-
     nutritionist = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

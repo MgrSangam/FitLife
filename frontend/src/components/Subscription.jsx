@@ -7,18 +7,27 @@ import "./Subscription.css";
 const Subscription = () => {
   
   const handleSubscription = async (plan) => {
-    try {
-      const response = await axiosInstance.post("/subscriptions/", { plan });
-      if (response.status === 201) {
-        // Handle successful subscription
+  try {
+    const response = await axiosInstance.post("/subscriptions/", { plan });
+    if (response.status === 201) {
+      if (response.data.payment_status === 'pending') {
+        // Handle pending payment
         window.location.href = "/payment";
+      } else {
+        // Subscription created successfully
+        alert("Subscription activated successfully!");
+        // Refresh user data or redirect
+        window.location.href = "/dashboard";
       }
-    } catch (error) {
-      console.error("Subscription failed:", error);
-      alert("Failed to start subscription. Please try again!");
     }
-    
-  };
+  } catch (error) {
+    console.error("Subscription failed:", error);
+    const errorMsg = error.response?.data?.detail || 
+                   error.response?.data?.error || 
+                   "Failed to start subscription. Please try again!";
+    alert(errorMsg);
+  }
+};
 
   return (
     <div className="subscription-container">

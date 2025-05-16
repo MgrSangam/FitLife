@@ -17,6 +17,7 @@ const Instructor = () => {
   const [instructorData, setInstructorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [clients, setClients] = useState([]);
 
   useEffect(() => {
 // Instructor.js - Update the fetch function
@@ -60,8 +61,21 @@ const fetchInstructorData = async () => {
   }
 };
 
+
     fetchInstructorData();
   }, [navigate]);
+
+  useEffect(() => {
+     const fetchClients = async () => {
+    try {
+      const response = await AxiosInstance.get('/api/chat/');
+      setClients(response.data);
+    } catch (err) {
+      console.error('Error fetching clients:', err);
+    }
+  };
+  fetchClients();
+}, []);
 
   const handleClientClick = (clientId) => {
     navigate(`/clients/${clientId}`);
@@ -210,42 +224,27 @@ const fetchInstructorData = async () => {
         )}
       </div>
 
-      <section className="clients-section">
-        <div className="clients-card">
-          <header>
-            <h3>Your Clients</h3>
-            <span className="badge">
-              {instructorData.clients.length} clients
-            </span>
-          </header>
-          
-          {instructorData.clients.length > 0 ? (
-            <div className="clients-grid">
-              {instructorData.clients.map((client) => (
-                <div 
-                  key={client.id} 
-                  className="client-card"
-                  onClick={() => handleClientClick(client.id)}
-                >
-                  <div className="client-avatar">
-                    {client.username?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="client-info">
-                    <h4>{client.username || client.email}</h4>
-                    <p className="client-email">{client.email}</p>
-                    {client.age && <p className="client-meta">Age: {client.age}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <FaUsers className="empty-icon" />
-              <p>You don't have any assigned clients yet.</p>
-            </div>
-          )}
+      {clients.length > 0 && (
+  <div className="clients-section">
+    <h3>Your Clients</h3>
+    <div className="clients-list">
+      {clients.map((client) => (
+        <div key={client.id} className="client-card">
+          <div className="client-info">
+            <h4>{client.username}</h4>
+            <p>{client.email}</p>
+          </div>
+          <button 
+            className="chat-btn"
+            onClick={() => navigate(`/chat/${client.id}`)}
+          >
+            <FaComments /> Message
+          </button>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+)}
     </div>
   );
 };
