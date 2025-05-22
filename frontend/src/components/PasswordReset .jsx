@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AxiosInstance from "./Axiosinstance";
 import { FaLock, FaCheck } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import "./Login.css";
+import "../CSS/Login.css";
 
 const PasswordReset = () => {
   const navigate = useNavigate();

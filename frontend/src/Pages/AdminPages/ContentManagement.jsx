@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlus, FaVideo, FaFileAlt } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
-import "./ContentManagement.css";
+import AxiosInstance from "../../components/Axiosinstance";
+import "../../CSS/ContentManagement.css";
 
 const ContentManagement = () => {
   const [contents, setContents] = useState([]);

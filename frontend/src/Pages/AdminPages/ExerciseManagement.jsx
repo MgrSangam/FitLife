@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import "./ExerciseManagement.css";
-import AxiosInstance from "./Axiosinstance";
+import "../../CSS/ExerciseManagement.css";
+import AxiosInstance from "../../components/Axiosinstance";
 
 const ExerciseManagement = () => {
   const [exercises, setExercises] = useState([]);

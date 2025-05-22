@@ -5,17 +5,17 @@ import {
   FaVideo, FaFileAlt, FaUserPlus, FaSignOutAlt, FaTachometerAlt,
   FaUserCog, FaClipboardList
 } from "react-icons/fa";
-import "./Admin.css"; // Import CSS file
+import "../CSS/Admin.css"; // Import CSS file
 
 // Import admin panel components
-import InstructorManagement from "./InstructorManagement";
-import ExerciseManagement from "./ExerciseManagement";
-import FoodManagement from "./FoodManagement";
-import PlanManagement from "./PlanManagement";
-import ChallengeManagement from "./ChallengeManagement";
-import ContentManagement from "./ContentManagement";
-import UserList from "./UserList";
-import MealManagement from "./MealManagement";
+import InstructorManagement from "./AdminPages/InstructorManagement";
+import ExerciseManagement from "./AdminPages/ExerciseManagement";
+import FoodManagement from "./AdminPages/FoodManagement";
+import PlanManagement from "./AdminPages/PlanManagement";
+import ChallengeManagement from "./AdminPages/ChallengeManagement";
+import ContentManagement from "./AdminPages/ContentManagement";
+import UserList from "./AdminPages/UserList";
+import MealManagement from "./AdminPages/MealManagement";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("instructors");

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AxiosInstance from "./Axiosinstance";
+import AxiosInstance from "../components/Axiosinstance";
 import {
   FaCalendarAlt,
   FaWeight,
@@ -11,7 +11,7 @@ import {
   FaArrowUp,
   FaCircle
 } from "react-icons/fa";
-import "./GoalSetup.css";
+import "../CSS/GoalSetup.css";
 
 const GoalsPage = () => {
   const navigate = useNavigate();

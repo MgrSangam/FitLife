@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import AxiosInstance from "./Axiosinstance"; // <-- adjust the import path
-import "./UserList.css";
+import AxiosInstance from "../../components/Axiosinstance"; // <-- adjust the import path
+import "../../CSS/UserList.css";
 
 const UserList = () => {
   const [searchTerm, setSearchTerm] = useState("");

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import AxiosInstance from "./Axiosinstance";
+import AxiosInstance from "../../components/Axiosinstance";
 import {
   FaUtensils,
   FaCalendarAlt,
@@ -10,7 +10,7 @@ import {
   FaBreadSlice,
   FaDrumstickBite
 } from "react-icons/fa";
-import "./MealPlanDetails.css";
+import "../../CSS/MealPlanDetails.css";
 
 const MealPlanDetail = () => {
   const { id } = useParams();

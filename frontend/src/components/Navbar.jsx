@@ -6,7 +6,7 @@ import {
   FaHistory, FaChartLine, FaTrophy, FaUtensils, FaClipboardList
 } from "react-icons/fa";
 import { MdSubscriptions } from "react-icons/md";
-import "./Navbar.css";
+import "../CSS/Navbar.css";
 
 export default function Navbar({ content }) {
   const { pathname } = useLocation();

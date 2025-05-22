@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import AxiosInstance from "./Axiosinstance";
+import AxiosInstance from "../../components/Axiosinstance";
 import {
   FaDumbbell,
   FaCalendarAlt,
@@ -11,7 +11,7 @@ import {
   FaWeightHanging,
   FaDownload,
 } from "react-icons/fa";
-import "./FitnessPlanDetail.css";
+import "../../CSS/FitnessPlanDetail.css";
 
 const FitnessPlanDetail = () => {
   const { id } = useParams();

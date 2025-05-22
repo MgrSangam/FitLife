@@ -9,8 +9,8 @@ import {
   FaCalendarAlt,
   FaDownload,
 } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
-import "./ChallengesDetail.css";
+import AxiosInstance from "../../components/Axiosinstance";
+import "../../CSS/ChallengesDetail.css";
 
 const ChallengeDetail = () => {
   const { id } = useParams();

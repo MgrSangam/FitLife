@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaDumbbell, FaCalendarAlt, FaHeartbeat, FaRunning } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
+import AxiosInstance from "../components/Axiosinstance";
 import { useNavigate } from "react-router-dom";
-import "./FitnessPlan.css";
+import "../CSS/FitnessPlan.css";
 
 const FitnessPlan = () => {
   const [fitnessPlans, setFitnessPlans] = useState([]);

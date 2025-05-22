@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaStar, FaRegStar, FaClock, FaEye, FaArrowLeft } from "react-icons/fa";
 import ReactPlayer from "react-player";
-import AxiosInstance from "./Axiosinstance";
-import "./EducationDetail.css";
+import AxiosInstance from "../../components/Axiosinstance";
+import "../../CSS/EducationDetail.css";
 
 const EducationDetail = () => {
   const { id } = useParams();

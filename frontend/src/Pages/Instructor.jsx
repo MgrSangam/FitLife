@@ -10,8 +10,8 @@ import {
   FaUserTie,
   FaComments
 } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
-import "./Instructor.css";
+import AxiosInstance from "../components/Axiosinstance";
+import "../CSS/Instructor.css";
 
 const Instructor = () => {
   const navigate = useNavigate();

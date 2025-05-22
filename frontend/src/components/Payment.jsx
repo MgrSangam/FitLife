@@ -3,7 +3,7 @@ import { FaLock, FaCreditCard, FaUser } from "react-icons/fa";
 import { BsCalendar2Month } from "react-icons/bs";
 import { RiSecurePaymentLine } from "react-icons/ri";
 import axiosInstance from "./Axiosinstance";
-import "./Payment.css"; // You'll need to create this CSS file
+import "../CSS/Payment.css"; // You'll need to create this CSS file
 
 
 const Payment = () => {

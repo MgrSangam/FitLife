@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import AxiosInstance from "./Axiosinstance";
 import { FaLock } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import "./Login.css";
+import "../CSS/Login.css";
 
 const Login = () => {
   const [formData, setFormData] = useState({

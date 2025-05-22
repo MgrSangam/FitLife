@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlus, FaMinus } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
-import "./MealManagement.css";
+import AxiosInstance from "../../components/Axiosinstance";
+import "../../CSS/MealManagement.css";
 
 const MealManagement = () => {
   const [mealPlans, setMealPlans] = useState([]);

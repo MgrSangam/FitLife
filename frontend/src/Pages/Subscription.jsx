@@ -1,7 +1,7 @@
 import React from "react";
 import { FaCheckCircle } from "react-icons/fa";
-import axiosInstance from "./Axiosinstance"; 
-import "./Subscription.css";
+import axiosInstance from "../components/Axiosinstance"; 
+import "../CSS/Subscription.css";
 
 
 const Subscription = () => {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AxiosInstance from "./Axiosinstance";
 import { FaDumbbell } from "react-icons/fa";
-import "./Register.css";
+import "../CSS/Register.css";
 
 const Register = () => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaUserPlus, FaEdit, FaTrash } from "react-icons/fa";
-import AxiosInstance from './Axiosinstance';  // Import AxiosInstance
-import "./InstructorManagement.css";
+import AxiosInstance from '../../components/Axiosinstance';  // Import AxiosInstance
+import "../../CSS/InstructorManagement.css";
 
 const InstructorManagement = () => {
   const [instructors, setInstructors] = useState([]);

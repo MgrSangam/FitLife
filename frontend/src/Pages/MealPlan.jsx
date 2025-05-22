@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaUtensils, FaCalendarAlt, FaFire, FaLeaf, FaHamburger } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
+import AxiosInstance from "../components/Axiosinstance";
 import { useNavigate } from "react-router-dom";
-import "./MealPlan.css";
+import "../CSS/MealPlan.css";
 
 const MealPlan = () => {
   const [mealPlans, setMealPlans] = useState([]);

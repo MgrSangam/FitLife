@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AxiosInstance from './Axiosinstance';
 import { FaPaperPlane, FaArrowLeft, FaEllipsisV, FaUserTie, FaUser } from 'react-icons/fa';
 import { IoMdSend } from 'react-icons/io';
-import './Chat.css';
+import '../CSS/Chat.css';
 
 const Chat = () => {
   const { userId } = useParams();

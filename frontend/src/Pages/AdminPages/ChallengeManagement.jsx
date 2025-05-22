@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
-import axios from "./Axiosinstance";
-import "./ChallengeManagement.css";
+import axios from "../../components/Axiosinstance";
+import "../../CSS/ChallengeManagement.css";
 
 const ChallengeManagement = () => {
   const [challenges, setChallenges] = useState([]);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AxiosInstance from './Axiosinstance';
+import AxiosInstance from '../components/Axiosinstance';
 import { FaComments, FaUserTie, FaPaperPlane } from 'react-icons/fa';
 import {
   FaUser,
@@ -16,7 +16,7 @@ import {
   FaRunning,
   FaDumbbell
 } from 'react-icons/fa';
-import './Profile.css';
+import '../CSS/Profile.css';
 
 const Profile = () => {
   const [assignedInstructors, setAssignedInstructors] = useState([]);

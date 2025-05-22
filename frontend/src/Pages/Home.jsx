@@ -13,8 +13,8 @@ import {
   FaPlus,
   FaExclamationTriangle
 } from 'react-icons/fa';
-import AxiosInstance from './Axiosinstance';
-import './Home.css';
+import AxiosInstance from '../components/Axiosinstance';
+import '../CSS/Home.css';
 import { MdSubscriptions } from 'react-icons/md';
 
 const HomePage = () => {

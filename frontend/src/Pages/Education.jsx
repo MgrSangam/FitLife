@@ -9,9 +9,9 @@ import {
   FaFilter,
   FaSpinner
 } from "react-icons/fa";
-import AxiosInstance from "./Axiosinstance";
+import AxiosInstance from "../components/Axiosinstance";
 import { useNavigate } from "react-router-dom";
-import "./Education.css";
+import "../CSS/Education.css";
 
 const CONTENT_TYPES = {
   VIDEO: "video",
