@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AxiosInstance from '../components/Axiosinstance';
-import { FaComments, FaUserTie, FaPaperPlane, FaUser, FaEdit } from 'react-icons/fa';
+import { FaComments, FaUserTie, FaPaperPlane, FaUser, FaEdit, FaCamera } from 'react-icons/fa';
 import {
   FaEnvelope,
   FaCalendarAlt,
@@ -102,6 +102,31 @@ const Profile = () => {
     setNewMessage('');
   };
 
+  const handleProfilePictureChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64Image = reader.result.split(',')[1]; // Remove data:image/...;base64, prefix
+          try {
+            const response = await AxiosInstance.patch('/api/user/profile/', {
+              profile_picture: base64Image
+            });
+            setUser(prev => ({ ...prev, profile_picture: base64Image }));
+          } catch (err) {
+            console.error('Error uploading profile picture:', err);
+            alert(`Failed to upload profile picture: ${err.response?.data?.detail || err.message}`);
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error reading file:', err);
+        alert('Failed to process image file');
+      }
+    }
+  };
+
   if (loading) return <div className="loading">Loading profile...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!user) return <div className="error">User not found</div>;
@@ -153,16 +178,33 @@ const Profile = () => {
 
       <div className="profile-header">
         <div className="profile-avatar">
-          <div className="avatar-placeholder">
-            <FaUser size={48} />
-          </div>
+          {user.profile_picture ? (
+            <img
+              src={`data:image/jpeg;base64,${user.profile_picture}`}
+              alt="Profile"
+              className="avatar-image"
+            />
+          ) : (
+            <div className="avatar-placeholder">
+              <FaUser size={48} />
+            </div>
+          )}
+          <label className="upload-picture-btn">
+            <FaCamera />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleProfilePictureChange}
+              style={{ display: 'none' }}
+            />
+          </label>
         </div>
         <div className="profile-info">
           <h1>{user.first_name} {user.last_name}</h1>
           <p className="username">@{user.username}</p>
           {user.bio && !editing && <p className="bio">{user.bio}</p>}
         </div>
-        <button 
+        <button
           className="edit-profile-btn"
           onClick={() => setEditing(!editing)}
         >
@@ -183,8 +225,8 @@ const Profile = () => {
                     <div key={instructor.id} className="instructor-card">
                       <div className="instructor-avatar">
                         {instructor.profile_picture ? (
-                          <img 
-                            src={`data:image/jpeg;base64,${instructor.profile_picture}`} 
+                          <img
+                            src={`data:image/jpeg;base64,${instructor.profile_picture}`}
                             alt={instructor.username}
                           />
                         ) : (
@@ -194,8 +236,8 @@ const Profile = () => {
                       <div className="instructor-info">
                         <h4>{instructor.username}</h4>
                         <p className="instructor-specialization">
-                          {instructor.specialization === 'trainer' 
-                            ? 'Personal Trainer' 
+                          {instructor.specialization === 'trainer'
+                            ? 'Personal Trainer'
                             : 'Nutritionist'}
                         </p>
                         <p className="instructor-bio">{instructor.bio || 'No bio provided'}</p>
@@ -220,7 +262,7 @@ const Profile = () => {
                   <span className="info-value">{user.email || 'Not specified'}</span>
                 </div>
               </div>
-              
+
               {user.phone && (
                 <div className="info-item">
                   <FaPhone className="info-icon" />
@@ -230,7 +272,7 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              
+
               {user.gender && (
                 <div className="info-item">
                   <FaVenusMars className="info-icon" />
@@ -240,7 +282,7 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              
+
               {user.birthday && (
                 <div className="info-item">
                   <FaCalendarAlt className="info-icon" />
@@ -252,7 +294,7 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              
+
               {user.weight && (
                 <div className="info-item">
                   <FaWeight className="info-icon" />
@@ -262,7 +304,7 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              
+
               {user.height && (
                 <div className="info-item">
                   <FaRulerVertical className="info-icon" />
@@ -272,7 +314,7 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              
+
               {user.location && (
                 <div className="info-item">
                   <FaMapMarkerAlt className="info-icon" />
@@ -282,7 +324,7 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              
+
               {user.fitness_goals && (
                 <div className="info-item">
                   <FaHeart className="info-icon" />
@@ -292,7 +334,7 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              
+
               {user.preferred_workouts && (
                 <div className="info-item">
                   <FaRunning className="info-icon" />

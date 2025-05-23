@@ -6,7 +6,8 @@ import {
   FaWeight,
   FaRulerVertical,
   FaBullseye,
-  FaRunning
+  FaRunning,
+  FaCamera
 } from 'react-icons/fa';
 
 const UserForm = ({ setUser, setEditing }) => {
@@ -21,7 +22,8 @@ const UserForm = ({ setUser, setEditing }) => {
     start_date: '',
     target_date: '',
     target_weight: '',
-    activity_level: ''
+    activity_level: '',
+    profile_picture: ''
   });
 
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,7 @@ const UserForm = ({ setUser, setEditing }) => {
 
         // Log response for debugging
         console.log('User Profile Response:', userData);
+        console.log('Profile Picture:', userData.profile_picture ? 'Present' : 'Missing');
         console.log('Goal Response:', goalData);
 
         // Validate required fields
@@ -63,14 +66,18 @@ const UserForm = ({ setUser, setEditing }) => {
           start_date: goalData.start_date || '',
           target_date: goalData.target_date || '',
           target_weight: goalData.target_weight || '',
-          activity_level: goalData.activity_level || ''
+          activity_level: goalData.activity_level || '',
+          profile_picture: userData.profile_picture || ''
         });
 
         setFieldErrors(newFieldErrors);
         setUser(userData);
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError(`Failed to fetch data: ${err.response?.data?.detail || err.message}`);
+        const errorMessage = err.response
+          ? `Error ${err.response.status}: ${err.response.data?.detail || 'Unknown error'}`
+          : `Network error: ${err.message}`;
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -84,6 +91,27 @@ const UserForm = ({ setUser, setEditing }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error for the field when user types
     setFieldErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (e.g., max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setFieldErrors(prev => ({ ...prev, profile_picture: 'Image size must be less than 5MB' }));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Image = reader.result.split(',')[1]; // Remove data:image/...;base64, prefix
+        setFormData(prev => ({ ...prev, profile_picture: base64Image }));
+        setFieldErrors(prev => ({ ...prev, profile_picture: '' }));
+      };
+      reader.onerror = () => {
+        setFieldErrors(prev => ({ ...prev, profile_picture: 'Failed to read image file' }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const validateForm = () => {
@@ -121,8 +149,22 @@ const UserForm = ({ setUser, setEditing }) => {
         age: formData.age ? parseInt(formData.age) : null,
         height: formData.height ? parseFloat(formData.height) : null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
-        birthday: formData.birthday || null
+        birthday: formData.birthday || null,
+        profile_picture: formData.profile_picture || null
       };
+
+      console.log('Submitting user data:', userData);
+
+      // Update user profile
+      const userResponse = await AxiosInstance.patch('/api/user/profile/', userData);
+      console.log('User profile update response:', userResponse.data);
+
+      // Verify profile_picture in response
+      if (!userResponse.data.profile_picture && formData.profile_picture) {
+        console.warn('Profile picture not returned in response');
+      }
+
+      setUser(userResponse.data);
 
       // Prepare goal data
       const goalData = {
@@ -136,22 +178,26 @@ const UserForm = ({ setUser, setEditing }) => {
         current_weight: formData.weight ? parseFloat(formData.weight) : null
       };
 
-      // Update user profile
-      const userResponse = await AxiosInstance.patch('/api/user/profile/', userData);
-      setUser(userResponse.data);
+      console.log('Submitting goal data:', goalData);
 
       // Update or create goal
       const existingGoal = (await AxiosInstance.get('/api/goals/')).data[0];
       if (existingGoal) {
         await AxiosInstance.patch(`/api/goals/${existingGoal.id}/`, goalData);
+        console.log('Goal updated:', existingGoal.id);
       } else {
-        await AxiosInstance.post('/api/goals/', goalData);
+        const goalResponse = await AxiosInstance.post('/api/goals/', goalData);
+        console.log('Goal created:', goalResponse.data);
       }
 
       setEditing(false);
     } catch (err) {
       console.error('Error updating profile or goals:', err);
-      alert(`Failed to update: ${err.response?.data?.detail || err.message}`);
+      const errorMessage = err.response
+        ? `Error ${err.response.status}: ${JSON.stringify(err.response.data) || 'Unknown error'}`
+        : `Network error: ${err.message}`;
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -169,7 +215,8 @@ const UserForm = ({ setUser, setEditing }) => {
       start_date: '',
       target_date: '',
       target_weight: '',
-      activity_level: ''
+      activity_level: '',
+      profile_picture: ''
     });
     setFieldErrors({});
     setEditing(false);
@@ -194,6 +241,30 @@ const UserForm = ({ setUser, setEditing }) => {
   return (
     <form onSubmit={handleSubmit} className="profile-form">
       <h3>Personal Information</h3>
+      <div className="form-group">
+        <label><FaCamera /> Profile Picture</label>
+        <div className="profile-picture-container">
+          {formData.profile_picture ? (
+            <img
+              src={`data:image/jpeg;base64,${formData.profile_picture}`}
+              alt="Profile Preview"
+              className="profile-picture-preview"
+            />
+          ) : (
+            <div className="avatar-placeholder">
+              <FaUser size={48} />
+            </div>
+          )}
+          <input
+            type="file"
+            name="profile_picture"
+            accept="image/*"
+            onChange={handleProfilePictureChange}
+            className="profile-picture-input"
+          />
+        </div>
+        {fieldErrors.profile_picture && <span className="error-message">{fieldErrors.profile_picture}</span>}
+      </div>
       <div className="form-row">
         <div className="form-group">
           <label><FaUser /> First Name</label>

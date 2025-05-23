@@ -10,6 +10,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'date_joined', 'is_instructor', 'age', 'height', 'weight']
         
+ 
+ 
         
 class CustomUserSerializer(serializers.ModelSerializer):
     assigned_clients_count = serializers.SerializerMethodField()
@@ -20,7 +22,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name', 'weight', 'height',
             'is_instructor', 'specialization', 'experience', 'bio', 'contact', 'birthday', 'age',
-            'assigned_clients_count', 'clients'
+            'assigned_clients_count', 'clients', 'profile_picture'
         ]
     
     def get_assigned_clients_count(self, obj):
