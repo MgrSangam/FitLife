@@ -26,6 +26,7 @@ from api.views.user import (
     assigned_instructors
 )
 from api.views.chat import chat_messages
+from api.views.dashboard import dashboard
 
 router = DefaultRouter()
 
@@ -84,4 +85,7 @@ urlpatterns = [
     
     # Instructor assignment routes
     path('api/user/assigned-instructors/', assigned_instructors, name='assigned-instructors'),
+    
+    #Admin Dashboard
+    path('api/admin/dashboard/', dashboard, name='dashboard'),
 ]

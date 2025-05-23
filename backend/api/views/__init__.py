@@ -9,6 +9,8 @@ from .meal_plan import MealPlanViewSet, MealPlanUserViewSet, MealFoodViewSet
 from .subscription import SubscriptionViewSet
 from .user import UserViewSet, InstructorViewSet, user_profile, instructor_dashboard, client_details, assigned_instructors
 from .chat import chat_messages
+from .dashboard import dashboard
+
 
 __all__ = [
     'RegisterView', 'LoginView',
@@ -23,4 +25,5 @@ __all__ = [
     'UserViewSet', 'InstructorViewSet', 'user_profile', 
     'instructor_dashboard', 'client_details', 'assigned_instructors',
     'chat_messages',
+    'dashboard',
 ]

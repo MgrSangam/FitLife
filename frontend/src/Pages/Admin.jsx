@@ -8,6 +8,7 @@ import {
 import "../CSS/Admin.css"; // Import CSS file
 
 // Import admin panel components
+import Dashboard from "./AdminPages/Dashboard";
 import InstructorManagement from "./AdminPages/InstructorManagement";
 import ExerciseManagement from "./AdminPages/ExerciseManagement";
 import FoodManagement from "./AdminPages/FoodManagement";
@@ -18,9 +19,10 @@ import UserList from "./AdminPages/UserList";
 import MealManagement from "./AdminPages/MealManagement";
 
 const AdminPage = () => {
-  const [activeTab, setActiveTab] = useState("instructors");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const tabs = [
+    { id: "dashboard", label: "Dashboard", icon: <FaTachometerAlt />, component: <Dashboard /> },
     { id: "instructors", label: "Instructors", icon: <FaUserCog />, component: <InstructorManagement /> },
     { id: "exercises", label: "Exercises", icon: <FaDumbbell />, component: <ExerciseManagement /> },
     { id: "food", label: "Food Items", icon: <FaUtensils />, component: <FoodManagement /> },
@@ -39,11 +41,11 @@ const AdminPage = () => {
       <header className="admin-header">
         <h1 className="admin-title">Admin Dashboard</h1>
         <div className="header-buttons">
-          <Link to="/" className="dashboard-button">
+          <Link to="/dashboard" className="dashboard-button">
             <FaTachometerAlt />
             <span>Dashboard</span>
           </Link>
-          <Link to="/login" className="logout-button">
+          <Link to="/" className="logout-button">
             <FaSignOutAlt />
             <span>Logout</span>
           </Link>
@@ -74,7 +76,7 @@ const AdminPage = () => {
             <div className="content-header">
               <h2 className="content-title">
                 {activeTabData?.icon}
-                {activeTabData?.label} Management
+                {activeTabData?.label}
               </h2>
             </div>
             <div className="content-body">

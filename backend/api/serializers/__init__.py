@@ -9,6 +9,7 @@ from .meal_plan import MealPlanSerializer, MealFoodSerializer, MealPlanUserSeria
 from .subscription import SubscriptionSerializer
 from .user import UserSerializer, CustomUserSerializer
 from .chat import ChatMessageSerializer
+from .dashboard import DashboardSerializer
 
 __all__ = [
     'RegisterSerializer', 'LoginSerializer',
@@ -22,4 +23,5 @@ __all__ = [
     'SubscriptionSerializer',
     'UserSerializer', 'CustomUserSerializer',
     'ChatMessageSerializer',
+    'DashboardSerializer'
 ]
