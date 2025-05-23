@@ -13,10 +13,34 @@ const FitnessPlan = () => {
   const [showJoinedOnly, setShowJoinedOnly] = useState(false);
   const [joinMessage, setJoinMessage] = useState(null);
   const [joiningId, setJoiningId] = useState(null);
-
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchUserGoals = async () => {
+      try {
+        const { data } = await AxiosInstance.get("/api/goals/", {
+          headers: { Authorization: `Token ${localStorage.getItem("authToken")}` },
+        });
+        if (data && data.length > 0) {
+          const userGoal = data[0]; // Assuming one goal per user due to OneToOneField
+          // Map goal_type to planType
+          const goalTypeMap = {
+            lose: "weight_loss",
+            gain: "muscle_gain",
+            maintain: "maintain",
+          };
+          setPlanType(goalTypeMap[userGoal.goal_type] || "all");
+          // Map activity_level to difficulty
+          setDifficulty(userGoal.activity_level || "all");
+        }
+      } catch (error) {
+        console.error("Error fetching user goals:", error);
+        // Default to "all" if goal fetch fails
+        setPlanType("all");
+        setDifficulty("all");
+      }
+    };
+
     const fetchFitnessPlans = async () => {
       try {
         const { data } = await AxiosInstance.get("/api/fitness-plans/");
@@ -49,6 +73,7 @@ const FitnessPlan = () => {
       }
     };
 
+    fetchUserGoals();
     fetchFitnessPlans();
     fetchJoinedPlans();
   }, []);

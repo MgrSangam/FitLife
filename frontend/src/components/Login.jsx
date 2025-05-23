@@ -101,7 +101,23 @@ const Login = () => {
           const profileResponse = await AxiosInstance.get('/api/user/profile/');
           localStorage.setItem("user", JSON.stringify(profileResponse.data));
         } else {
-          navigate("/home", { replace: true });
+          // Check if user has existing goals
+          try {
+            const goalsResponse = await AxiosInstance.get('/api/goals/', {
+              headers: { Authorization: `Token ${response.data.token}` }
+            });
+            
+            // If goals exist, navigate to home, otherwise go to goal setup
+            if (goalsResponse.data && goalsResponse.data.length > 0) {
+              navigate("/home", { replace: true });
+            } else {
+              navigate("/goals", { replace: true });
+            }
+          } catch (goalError) {
+            console.error("Error checking goals:", goalError);
+            // If error occurs while checking goals, assume no goals and navigate to goal setup
+            navigate("/goals", { replace: true });
+          }
         }
       } else {
         throw new Error("Invalid response from server");
