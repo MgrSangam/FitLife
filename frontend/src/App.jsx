@@ -23,16 +23,26 @@ import ProtectedRoute from './components/ProtectedRoutes'
 import AdminPage from './Pages/Admin'
 import PasswordResetRequest from './components/PasswordResetRequest'
 import PasswordReset from './components/PasswordReset '
-
+import Footer from './components/Footer'
 
 function App() {
   const location = useLocation()
-  const noNavbar = location.pathname === "/register" || location.pathname === "/" || location.pathname === "/reset" || location.pathname ==='/password-reset' || location.pathname === '/admin'
+  const noNavbar = location.pathname === "/register" || 
+                   location.pathname === "/" || 
+                   location.pathname === "/reset" || 
+                   location.pathname ==='/password-reset' || 
+                   location.pathname === '/admin'
+
+  const noFooter = location.pathname === "/register" ||
+                   location.pathname === "/" || 
+                   location.pathname === "/reset" || 
+                   location.pathname ==='/password-reset' || 
+                   location.pathname === '/admin'
   return (
     <>
 
     {
-      noNavbar ?
+      noNavbar ?(
       <Routes>
          <Route path='/' element={<Login />} />
          <Route path='/register' element={<Register />} />
@@ -45,8 +55,8 @@ function App() {
 
       </Routes>
 
-      :
-
+        ):(
+          <>
       <Navbar
           content={
             <Routes>
@@ -67,11 +77,12 @@ function App() {
                   <Route path='/payment' element={<Payment/>} />
                   <Route path='/chat/:userId' element={<Chat />} />
               </Route>
-             
-              
             </Routes>
           } 
       />
+      <Footer/>
+      </>
+        )
 
     }
       

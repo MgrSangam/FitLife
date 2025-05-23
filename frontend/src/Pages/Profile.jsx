@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AxiosInstance from '../components/Axiosinstance';
-import { FaComments, FaUserTie, FaPaperPlane } from 'react-icons/fa';
+import { FaComments, FaUserTie, FaPaperPlane, FaUser, FaEdit } from 'react-icons/fa';
 import {
-  FaUser,
   FaEnvelope,
   FaCalendarAlt,
   FaWeight,
   FaRulerVertical,
-  FaEdit,
   FaVenusMars,
   FaPhone,
   FaMapMarkerAlt,
   FaHeart,
   FaRunning,
-  FaDumbbell
 } from 'react-icons/fa';
+import UserForm from '../components/UserForm';
 import '../CSS/Profile.css';
 
 const Profile = () => {
@@ -30,21 +28,6 @@ const Profile = () => {
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    gender: '',
-    birthday: '',
-    weight: '',
-    height: '',
-    bio: '',
-    location: '',
-    fitness_goals: '',
-    preferred_workouts: ''
-  });
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -57,20 +40,6 @@ const Profile = () => {
         console.log('Instructors data:', instructorsRes.data);
         setUser(profileRes.data);
         setAssignedInstructors(instructorsRes.data);
-        setFormData({
-          first_name: profileRes.data.first_name || '',
-          last_name: profileRes.data.last_name || '',
-          email: profileRes.data.email || '',
-          phone: profileRes.data.phone || '',
-          gender: profileRes.data.gender || '',
-          birthday: profileRes.data.birthday || '',
-          weight: profileRes.data.weight || '',
-          height: profileRes.data.height || '',
-          bio: profileRes.data.bio || '',
-          location: profileRes.data.location || '',
-          fitness_goals: profileRes.data.fitness_goals || '',
-          preferred_workouts: profileRes.data.preferred_workouts || ''
-        });
       } catch (err) {
         const errorMessage = err.response
           ? `Error ${err.response.status}: ${err.response.data?.detail || 'Unknown error'}`
@@ -101,23 +70,6 @@ const Profile = () => {
       fetchMessages();
     }
   }, [activeChat]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await AxiosInstance.patch('/api/user/profile/', formData);
-      setUser(response.data);
-      setEditing(false);
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      alert('Failed to update profile');
-    }
-  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -220,147 +172,7 @@ const Profile = () => {
 
       <div className="profile-content">
         {editing ? (
-          <form onSubmit={handleSubmit} className="profile-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label>First Name</label>
-                <input
-                  type="text"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Last Name</label>
-                <input
-                  type="text"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </div>
-        
-            <div className="form-row">
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-        
-            <div className="form-row">
-              <div className="form-group">
-                <label>Gender</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Birth Date</label>
-                <input
-                  type="date"
-                  name="birthday"
-                  value={formData.birthday}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-        
-            <div className="form-row">
-              <div className="form-group">
-                <label>Weight (kg)</label>
-                <input
-                  type="number"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleInputChange}
-                  step="0.1"
-                />
-              </div>
-              <div className="form-group">
-                <label>Height (cm)</label>
-                <input
-                  type="number"
-                  name="height"
-                  value={formData.height}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-        
-            <div className="form-group">
-              <label>Location</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-              />
-            </div>
-        
-            <div className="form-group">
-              <label>Fitness Goals</label>
-              <textarea
-                name="fitness_goals"
-                value={formData.fitness_goals}
-                onChange={handleInputChange}
-                rows="2"
-                placeholder="E.g., Lose weight, build muscle, improve endurance"
-              />
-            </div>
-        
-            <div className="form-group">
-              <label>Preferred Workouts</label>
-              <textarea
-                name="preferred_workouts"
-                value={formData.preferred_workouts}
-                onChange={handleInputChange}
-                rows="2"
-                placeholder="E.g., Weight lifting, yoga, running"
-              />
-            </div>
-        
-            <div className="form-group">
-              <label>Bio</label>
-              <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleInputChange}
-                rows="3"
-              />
-            </div>
-        
-            <div className="form-actions">
-              <button type="submit" className="save-btn">
-                Save Changes
-              </button>
-            </div>
-          </form>
+          <UserForm user={user} setUser={setUser} setEditing={setEditing} />
         ) : (
           <div className="profile-details">
             {assignedInstructors.length > 0 && (

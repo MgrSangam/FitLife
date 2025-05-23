@@ -4,11 +4,13 @@ from ..models import SubscriptionPlan
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'date_joined', 'is_instructor', 'age', 'height', 'weight']
-
+        
+        
 class CustomUserSerializer(serializers.ModelSerializer):
     assigned_clients_count = serializers.SerializerMethodField()
     clients = serializers.SerializerMethodField()
@@ -16,9 +18,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'is_instructor',
-            'specialization', 'experience', 'bio',
-            'contact', 'birthday', 'age',
+            'id', 'username', 'email', 'first_name', 'last_name', 'weight', 'height',
+            'is_instructor', 'specialization', 'experience', 'bio', 'contact', 'birthday', 'age',
             'assigned_clients_count', 'clients'
         ]
     
