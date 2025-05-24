@@ -3,7 +3,6 @@ from django.core.validators import MinValueValidator
 from ..models.user import CustomUser
 from ..models.exercise import Exercise
 from django.contrib.auth import get_user_model
-# ... keep your FitnessPlan, FitnessPlanUser, FitnessPlanExercise models ...
 
 User = get_user_model()
 
@@ -50,15 +49,11 @@ class FitnessPlan(models.Model):
     def __str__(self):
         return self.name
 
-
-
-
-
-
 class FitnessPlanUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fitness_plan_users')
     fitness_plan = models.ForeignKey(FitnessPlan, on_delete=models.CASCADE, related_name='users')
     joined_at = models.DateTimeField(auto_now_add=True)
+    progress = models.JSONField(default=list, blank=True)  # Stores ticked days, e.g., [1, 2, 3]
 
     class Meta:
         unique_together = ('user', 'fitness_plan')  # Prevent duplicate joins
@@ -67,9 +62,6 @@ class FitnessPlanUser(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.fitness_plan.name}"
-
-
-
 
 class FitnessPlanExercise(models.Model):
     DAYS_OF_WEEK = [

@@ -224,3 +224,13 @@
   color: #64748b;
   font-size: 1.1rem;
 }
+
+
+.progress-tracker {
+  margin: 2rem auto; /* Center horizontally with auto margins */
+  width: 700px;
+  background-color: #f8f9fa; /* Light gray background, matching app theme */
+  padding: 1.5rem; /* Consistent padding */
+  border-radius: 0.5rem; /* Rounded corners */
+
+}

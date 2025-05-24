@@ -21,6 +21,8 @@ const FitnessPlanDetail = () => {
   const [activeDay, setActiveDay] = useState("monday");
   const [downloading, setDownloading] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
+  const [progress, setProgress] = useState([]);
+  const [tickMessage, setTickMessage] = useState(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -32,8 +34,9 @@ const FitnessPlanDetail = () => {
         console.log("Plan Response:", planResponse.data);
         console.log("Joined Response:", joinedResponse.data);
         setPlan(planResponse.data);
-        const joinedPlanIds = joinedResponse.data.map(item => item.fitness_plan);
-        setIsJoined(joinedPlanIds.includes(parseInt(id)));
+        const joinedPlan = joinedResponse.data.find(item => item.fitness_plan === parseInt(id));
+        setIsJoined(!!joinedPlan);
+        setProgress(joinedPlan ? joinedPlan.progress : []);
       } catch (err) {
         const errorMessage = err.response
           ? `API Error: ${err.response.status} - ${err.response.data?.detail || "No detail provided"}`
@@ -52,6 +55,7 @@ const FitnessPlanDetail = () => {
       const response = await AxiosInstance.post("/api/fitness-plan-users/", { fitness_plan: id });
       console.log("Join Plan Response:", response.data);
       setIsJoined(true);
+      setProgress(response.data.progress || []);
       alert("Successfully joined the fitness plan!");
     } catch (error) {
       const errorMessage = error.response
@@ -59,6 +63,36 @@ const FitnessPlanDetail = () => {
         : `Network Error: ${error.message}`;
       console.error("Error joining plan:", errorMessage);
       alert(`Failed to join the plan: ${errorMessage}`);
+    }
+  };
+
+  const handleTickDay = async (day) => {
+    try {
+      const { data: joinedPlans } = await AxiosInstance.get("/api/fitness-plan-users/");
+      const joinedPlan = joinedPlans.find(item => item.fitness_plan === parseInt(id));
+      if (!joinedPlan) {
+        setTickMessage("You must join the fitness plan before ticking days.");
+        setTimeout(() => setTickMessage(null), 3000);
+        return;
+      }
+
+      const planUserId = joinedPlan.id;
+      const { data } = await AxiosInstance.post(
+        `/api/fitness-plan-users/${planUserId}/tick-day/`,
+        { day }
+      );
+      setProgress(data.progress);
+      setTickMessage(`Day ${day} ticked successfully!`);
+    } catch (err) {
+      console.error("Error ticking day:", err.response || err);
+      const errorMessage =
+        err.response?.data?.non_field_errors?.[0] ||
+        err.response?.data?.detail ||
+        err.response?.data?.day?.[0] ||
+        "Could not tick day";
+      setTickMessage(errorMessage);
+    } finally {
+      setTimeout(() => setTickMessage(null), 3000);
     }
   };
 
@@ -133,6 +167,9 @@ const FitnessPlanDetail = () => {
   const daysWithExercises = Object.keys(exercisesByDay).filter(
     day => exercisesByDay[day]?.length > 0
   );
+
+  const totalDays = plan.total_days || plan.duration_weeks * 7;
+  const progressBoxes = Array.from({ length: totalDays }, (_, i) => i + 1);
 
   return (
     <div className="fitness-plan-container">
@@ -262,6 +299,29 @@ const FitnessPlanDetail = () => {
             <p className="no-exercises">No exercises scheduled for this plan yet.</p>
           )}
         </div>
+
+        {isJoined && (
+          <div className="progress-tracker">
+            <h3>Progress Tracking</h3>
+            <div className="progress-boxes">
+              {progressBoxes.map((day) => (
+                <button
+                  key={day}
+                  className={`progress-box ${progress.includes(day) ? 'ticked' : ''}`}
+                  onClick={() => handleTickDay(day)}
+                  disabled={progress.includes(day)}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
+            {tickMessage && (
+              <div className={`tick-message ${tickMessage.includes('successfully') ? '' : 'error'}`}>
+                {tickMessage}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

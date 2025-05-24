@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager, AbstractBaseUser, PermissionsMixin, UserManager
 from django.core.exceptions import ValidationError
-from django_rest_passwordreset.signals import reset_password_token_created
 from django.dispatch import receiver
 from django.urls import reverse
 from django.template.loader import render_to_string

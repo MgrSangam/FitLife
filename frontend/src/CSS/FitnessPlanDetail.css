@@ -1,13 +1,4 @@
-/* PlanDetail.css - Matching Challenge.css style */
-
-.content-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: 'Arial', sans-serif;
-  background-color: #f9f9f9;
-  min-height: 100vh;
-  padding: 2rem;
-}
+/* FitnessPlanDetail.css - Matching ChallengesDetail.css style */
 
 .fitness-plan-container {
   max-width: 1200px;
@@ -202,6 +193,65 @@
   margin-top: 1rem;
   line-height: 1.6;
   color: #444;
+}
+
+.progress-tracker {
+  margin-top: 2rem;
+}
+
+.progress-tracker h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #222;
+  text-align: center;
+}
+
+.progress-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.progress-box {
+  width: 40px;
+  height: 40px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.progress-box:hover {
+  background: #e0e0e0;
+}
+
+.progress-box.ticked {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+  cursor: default;
+}
+
+.progress-box:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.tick-message {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #28a745;
+}
+
+.tick-message.error {
+  color: #d32f2f;
 }
 
 .loading, .error {

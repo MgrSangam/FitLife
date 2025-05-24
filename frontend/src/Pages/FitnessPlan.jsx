@@ -21,21 +21,19 @@ const FitnessPlan = () => {
         const { data } = await AxiosInstance.get("/api/goals/", {
           headers: { Authorization: `Token ${localStorage.getItem("authToken")}` },
         });
+        console.log("User Goals Response:", data);
         if (data && data.length > 0) {
           const userGoal = data[0]; // Assuming one goal per user due to OneToOneField
-          // Map goal_type to planType
           const goalTypeMap = {
             lose: "weight_loss",
             gain: "muscle_gain",
             maintain: "maintain",
           };
           setPlanType(goalTypeMap[userGoal.goal_type] || "all");
-          // Map activity_level to difficulty
           setDifficulty(userGoal.activity_level || "all");
         }
       } catch (error) {
-        console.error("Error fetching user goals:", error);
-        // Default to "all" if goal fetch fails
+        console.error("Error fetching user goals:", error.response?.data || error.message);
         setPlanType("all");
         setDifficulty("all");
       }
@@ -44,6 +42,7 @@ const FitnessPlan = () => {
     const fetchFitnessPlans = async () => {
       try {
         const { data } = await AxiosInstance.get("/api/fitness-plans/");
+        console.log("Fitness Plans Response:", data);
         const plansWithDisplay = data.map(plan => ({
           ...plan,
           plan_type_display: plan.plan_type_display || getPlanTypeDisplay(plan.plan_type),
@@ -51,24 +50,27 @@ const FitnessPlan = () => {
         }));
         setFitnessPlans(plansWithDisplay);
       } catch (error) {
-        console.error("Error fetching fitness plans:", error);
+        console.error("Error fetching fitness plans:", error.response?.data || error.message);
       }
     };
 
     const fetchJoinedPlans = async () => {
       try {
-        const { data } = await AxiosInstance.get("/api/fitness-plan-users/");
+        const { data } = await AxiosInstance.get("/api/fitness-plan-users/", {
+          headers: { Authorization: `Token ${localStorage.getItem("authToken")}` },
+        });
+        console.log("Joined Plans Response:", data);
         const ids = data.map(item => item.fitness_plan);
         setJoinedPlans(ids);
-        if (ids.length > 0) {
-          setShowJoinedOnly(true);
-        }
+        setShowJoinedOnly(ids.length > 0); // Set toggle based on joined plans
       } catch (error) {
+        console.error("Error fetching joined plans:", error.response?.data || error.message);
         if (error.response?.status === 401) {
+          console.warn("Unauthorized: Clearing joined plans");
           setJoinedPlans([]);
           setShowJoinedOnly(false);
         } else {
-          console.error("Error fetching joined plans:", error);
+          setJoinedPlans([]);
         }
       }
     };
@@ -77,6 +79,37 @@ const FitnessPlan = () => {
     fetchFitnessPlans();
     fetchJoinedPlans();
   }, []);
+
+  const handleJoinPlan = async (planId) => {
+    if (joinedPlans.length > 0) {
+      setJoinMessage("You can only join one plan at a time.");
+      setTimeout(() => setJoinMessage(null), 3000);
+      return;
+    }
+
+    try {
+      setJoiningId(planId);
+      const { data } = await AxiosInstance.post("/api/fitness-plan-users/", { fitness_plan: planId });
+      console.log("Join Plan Response:", data);
+      setJoinMessage("Successfully joined the fitness plan!");
+      setJoinedPlans([data.fitness_plan]); // Use fitness_plan from response
+      setShowJoinedOnly(true);
+    } catch (error) {
+      console.error("Error joining plan:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      setJoinMessage(
+        error.response?.data?.detail ||
+        error.response?.data?.non_field_errors?.[0] ||
+        "Error joining the plan"
+      );
+    } finally {
+      setJoiningId(null);
+      setTimeout(() => setJoinMessage(null), 3000);
+    }
+  };
 
   const getPlanTypeDisplay = (planType) => {
     const typeMap = {
@@ -100,36 +133,6 @@ const FitnessPlan = () => {
       'very_active': 'Very Hard'
     };
     return difficultyMap[difficulty] || difficulty;
-  };
-
-  const handleJoinPlan = async (planId) => {
-    if (joinedPlans.length > 0) {
-      setJoinMessage("You can only join one plan at a time.");
-      setTimeout(() => setJoinMessage(null), 3000);
-      return;
-    }
-
-    try {
-      setJoiningId(planId);
-      const { data } = await AxiosInstance.post("/api/fitness-plan-users/", { fitness_plan: planId });
-      setJoinMessage("Successfully joined the fitness plan!");
-      setJoinedPlans([planId]); // Set to single plan ID
-      setShowJoinedOnly(true);
-    } catch (error) {
-      console.error("Error details:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-      setJoinMessage(
-        error.response?.data?.detail ||
-        error.response?.data?.non_field_errors?.[0] ||
-        "Error joining the plan"
-      );
-    } finally {
-      setJoiningId(null);
-      setTimeout(() => setJoinMessage(null), 3000);
-    }
   };
 
   const filteredPlans = fitnessPlans.filter((plan) => {
