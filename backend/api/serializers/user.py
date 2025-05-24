@@ -4,19 +4,16 @@ from ..models import SubscriptionPlan
 
 User = get_user_model()
 
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'date_joined', 'is_instructor', 'age', 'height', 'weight']
-        
- 
- 
-        
+
 class CustomUserSerializer(serializers.ModelSerializer):
     assigned_clients_count = serializers.SerializerMethodField()
     clients = serializers.SerializerMethodField()
-    
+    profile_picture = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
+
     class Meta:
         model = User
         fields = [
@@ -24,7 +21,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'is_instructor', 'specialization', 'experience', 'bio', 'contact', 'birthday', 'age',
             'assigned_clients_count', 'clients', 'profile_picture'
         ]
-    
+
     def get_assigned_clients_count(self, obj):
         if 'clients' in self.context:
             return self.context['clients'].count()

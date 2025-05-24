@@ -20,7 +20,7 @@ class CustomUser(AbstractUser):
     age = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
-    profile_picture = models.BinaryField(null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     birthday = models.DateField(null=True, blank=True)
 
     # Instructor-specific fields

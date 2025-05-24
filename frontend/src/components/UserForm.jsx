@@ -23,14 +23,14 @@ const UserForm = ({ setUser, setEditing }) => {
     target_date: '',
     target_weight: '',
     activity_level: '',
-    profile_picture: ''
+    profile_picture: null
   });
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const BASE_URL = 'http://localhost:8000'; // Adjust if your backend runs on a different host/port
 
-  // Fetch user profile and goal data when component mounts
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -43,12 +43,10 @@ const UserForm = ({ setUser, setEditing }) => {
         const userData = userResponse.data || {};
         const goalData = goalResponse.data[0] || {};
 
-        // Log response for debugging
         console.log('User Profile Response:', userData);
-        console.log('Profile Picture:', userData.profile_picture ? 'Present' : 'Missing');
+        console.log('Profile Picture:', userData.profile_picture ? userData.profile_picture : 'Missing');
         console.log('Goal Response:', goalData);
 
-        // Validate required fields
         const newFieldErrors = {};
         if (!userData.first_name) newFieldErrors.first_name = 'First name is missing';
         if (!userData.last_name) newFieldErrors.last_name = 'Last name is missing';
@@ -67,11 +65,22 @@ const UserForm = ({ setUser, setEditing }) => {
           target_date: goalData.target_date || '',
           target_weight: goalData.target_weight || '',
           activity_level: goalData.activity_level || '',
-          profile_picture: userData.profile_picture || ''
+          profile_picture: userData.profile_picture
+            ? userData.profile_picture.startsWith('http')
+              ? userData.profile_picture
+              : `${BASE_URL}${userData.profile_picture}`
+            : null
         });
 
         setFieldErrors(newFieldErrors);
-        setUser(userData);
+        setUser({
+          ...userData,
+          profile_picture: userData.profile_picture
+            ? userData.profile_picture.startsWith('http')
+              ? userData.profile_picture
+              : `${BASE_URL}${userData.profile_picture}`
+            : null
+        });
       } catch (err) {
         console.error('Error fetching data:', err);
         const errorMessage = err.response
@@ -89,51 +98,19 @@ const UserForm = ({ setUser, setEditing }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error for the field when user types
     setFieldErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file size (e.g., max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setFieldErrors(prev => ({ ...prev, profile_picture: 'Image size must be less than 5MB' }));
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Image = reader.result.split(',')[1]; // Remove data:image/...;base64, prefix
-        setFormData(prev => ({ ...prev, profile_picture: base64Image }));
-        setFieldErrors(prev => ({ ...prev, profile_picture: '' }));
-      };
-      reader.onerror = () => {
-        setFieldErrors(prev => ({ ...prev, profile_picture: 'Failed to read image file' }));
-      };
-      reader.readAsDataURL(file);
+      setFormData(prev => ({ ...prev, profile_picture: file }));
+      setFieldErrors(prev => ({ ...prev, profile_picture: '' }));
     }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.first_name) newErrors.first_name = 'First name is required';
-    if (!formData.last_name) newErrors.last_name = 'Last name is required';
-    if (!formData.weight) newErrors.weight = 'Weight is required';
-    if (!formData.height) newErrors.height = 'Height is required';
-    if (!formData.goal_type) newErrors.goal_type = 'Goal type is required';
-    if (!formData.start_date) newErrors.start_date = 'Start date is required';
-    if (!formData.target_date) newErrors.target_date = 'Target date is required';
-    if (!formData.target_weight) newErrors.target_weight = 'Target weight is required';
-    if (!formData.activity_level) newErrors.activity_level = 'Activity level is required';
-
-    if (formData.start_date && formData.target_date) {
-      const start = new Date(formData.start_date);
-      const target = new Date(formData.target_date);
-      if (target <= start) newErrors.target_date = 'Target date must be after start date';
-    }
-
-    setFieldErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -142,31 +119,35 @@ const UserForm = ({ setUser, setEditing }) => {
 
     setLoading(true);
     try {
-      // Prepare user profile data
-      const userData = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        age: formData.age ? parseInt(formData.age) : null,
-        height: formData.height ? parseFloat(formData.height) : null,
-        weight: formData.weight ? parseFloat(formData.weight) : null,
-        birthday: formData.birthday || null,
-        profile_picture: formData.profile_picture || null
-      };
-
-      console.log('Submitting user data:', userData);
-
-      // Update user profile
-      const userResponse = await AxiosInstance.patch('/api/user/profile/', userData);
-      console.log('User profile update response:', userResponse.data);
-
-      // Verify profile_picture in response
-      if (!userResponse.data.profile_picture && formData.profile_picture) {
-        console.warn('Profile picture not returned in response');
+      const userFormData = new FormData();
+      userFormData.append('first_name', formData.first_name);
+      userFormData.append('last_name', formData.last_name);
+      if (formData.age) userFormData.append('age', parseInt(formData.age));
+      if (formData.height) userFormData.append('height', parseFloat(formData.height));
+      if (formData.weight) userFormData.append('weight', parseFloat(formData.weight));
+      if (formData.birthday) userFormData.append('birthday', formData.birthday);
+      if (formData.profile_picture && typeof formData.profile_picture !== 'string') {
+        userFormData.append('profile_picture', formData.profile_picture);
       }
 
-      setUser(userResponse.data);
+      console.log('Submitting user data:', Object.fromEntries(userFormData));
 
-      // Prepare goal data
+      const userResponse = await AxiosInstance.patch('/api/user/profile/', userFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log('User profile update response:', userResponse.data);
+
+      setUser({
+        ...userResponse.data,
+        profile_picture: userResponse.data.profile_picture
+          ? userResponse.data.profile_picture.startsWith('http')
+            ? userResponse.data.profile_picture
+            : `${BASE_URL}${userResponse.data.profile_picture}`
+          : null
+      });
+
       const goalData = {
         goal_type: formData.goal_type,
         start_date: formData.start_date,
@@ -180,11 +161,11 @@ const UserForm = ({ setUser, setEditing }) => {
 
       console.log('Submitting goal data:', goalData);
 
-      // Update or create goal
-      const existingGoal = (await AxiosInstance.get('/api/goals/')).data[0];
-      if (existingGoal) {
-        await AxiosInstance.patch(`/api/goals/${existingGoal.id}/`, goalData);
-        console.log('Goal updated:', existingGoal.id);
+      const goalResponse = await AxiosInstance.get('/api/goals/');
+      const goals = goalResponse.data;
+      if (goals && goals.length > 0 && goals[0].id) {
+        await AxiosInstance.patch(`/api/goals/${goals[0].id}/`, goalData);
+        console.log('Goal updated:', goals[0].id);
       } else {
         const goalResponse = await AxiosInstance.post('/api/goals/', goalData);
         console.log('Goal created:', goalResponse.data);
@@ -216,13 +197,12 @@ const UserForm = ({ setUser, setEditing }) => {
       target_date: '',
       target_weight: '',
       activity_level: '',
-      profile_picture: ''
+      profile_picture: null
     });
     setFieldErrors({});
     setEditing(false);
   };
 
-  // Helper function to calculate age from birthday
   const calculateAge = (birthday) => {
     if (!birthday) return null;
     const birthDate = new Date(birthday);
@@ -235,6 +215,33 @@ const UserForm = ({ setUser, setEditing }) => {
     return age;
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.first_name) newErrors.first_name = 'First name is required';
+    if (!formData.last_name) newErrors.last_name = 'Last name is required';
+    if (!formData.weight) newErrors.weight = 'Weight is required';
+    if (!formData.height) newErrors.height = 'Height is required';
+    if (!formData.goal_type) newErrors.goal_type = 'Goal type is required';
+    if (!formData.start_date) newErrors.start_date = 'Start date is required';
+    if (!formData.target_date) newErrors.target_date = 'Target date is required';
+    if (!formData.target_weight) newErrors.target_weight = 'Target weight is required';
+    if (!formData.activity_level) newErrors.activity_level = 'Activity level is required';
+
+    if (formData.start_date && formData.target_date) {
+      const start = new Date(formData.start_date);
+      const target = new Date(formData.target_date);
+      if (target <= start) newErrors.target_date = 'Target date must be after start date';
+    }
+
+    setFieldErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageError = (e) => {
+    console.error('Failed to load image:', e.target.src);
+    e.target.style.display = 'none'; // Hide broken image
+  };
+
   if (loading) return <div>Loading form data...</div>;
   if (error) return <div>{error}</div>;
 
@@ -245,11 +252,20 @@ const UserForm = ({ setUser, setEditing }) => {
         <label><FaCamera /> Profile Picture</label>
         <div className="profile-picture-container">
           {formData.profile_picture ? (
-            <img
-              src={`data:image/jpeg;base64,${formData.profile_picture}`}
-              alt="Profile Preview"
-              className="profile-picture-preview"
-            />
+            typeof formData.profile_picture === 'string' ? (
+              <img
+                src={formData.profile_picture}
+                alt="Profile Preview"
+                className="profile-picture-preview"
+                onError={handleImageError}
+              />
+            ) : (
+              <img
+                src={URL.createObjectURL(formData.profile_picture)}
+                alt="Profile Preview"
+                className="profile-picture-preview"
+              />
+            )
           ) : (
             <div className="avatar-placeholder">
               <FaUser size={48} />

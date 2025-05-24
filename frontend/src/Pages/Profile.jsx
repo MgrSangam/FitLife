@@ -27,6 +27,7 @@ const Profile = () => {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
+  const BASE_URL = 'http://localhost:8000'; // Adjust if your backend runs on a different host/port
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,9 +38,26 @@ const Profile = () => {
           AxiosInstance.get('/api/user/assigned-instructors/')
         ]);
         console.log('Profile data:', profileRes.data);
+        console.log('Profile picture URL:', profileRes.data.profile_picture);
         console.log('Instructors data:', instructorsRes.data);
-        setUser(profileRes.data);
-        setAssignedInstructors(instructorsRes.data);
+        setUser({
+          ...profileRes.data,
+          profile_picture: profileRes.data.profile_picture
+            ? profileRes.data.profile_picture.startsWith('http')
+              ? profileRes.data.profile_picture
+              : `${BASE_URL}${profileRes.data.profile_picture}`
+            : null
+        });
+        setAssignedInstructors(
+          instructorsRes.data.map(instructor => ({
+            ...instructor,
+            profile_picture: instructor.profile_picture
+              ? instructor.profile_picture.startsWith('http')
+                ? instructor.profile_picture
+                : `${BASE_URL}${instructor.profile_picture}`
+              : null
+          }))
+        );
       } catch (err) {
         const errorMessage = err.response
           ? `Error ${err.response.status}: ${err.response.data?.detail || 'Unknown error'}`
@@ -105,26 +123,40 @@ const Profile = () => {
   const handleProfilePictureChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
       try {
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const base64Image = reader.result.split(',')[1]; // Remove data:image/...;base64, prefix
-          try {
-            const response = await AxiosInstance.patch('/api/user/profile/', {
-              profile_picture: base64Image
-            });
-            setUser(prev => ({ ...prev, profile_picture: base64Image }));
-          } catch (err) {
-            console.error('Error uploading profile picture:', err);
-            alert(`Failed to upload profile picture: ${err.response?.data?.detail || err.message}`);
+        const formData = new FormData();
+        formData.append('profile_picture', file);
+        const response = await AxiosInstance.patch('/api/user/profile/', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
-        };
-        reader.readAsDataURL(file);
+        });
+        console.log('Profile picture update response:', response.data);
+        setUser(prev => ({
+          ...prev,
+          profile_picture: response.data.profile_picture
+            ? response.data.profile_picture.startsWith('http')
+              ? response.data.profile_picture
+              : `${BASE_URL}${response.data.profile_picture}`
+            : null
+        }));
       } catch (err) {
-        console.error('Error reading file:', err);
-        alert('Failed to process image file');
+        console.error('Error uploading profile picture:', err);
+        const errorMessage = err.response
+          ? `Error ${err.response.status}: ${err.response.data?.detail || 'Unknown error'}`
+          : `Network error: ${err.message}`;
+        alert(`Failed to upload profile picture: ${errorMessage}`);
       }
     }
+  };
+
+  const handleImageError = (e) => {
+    console.error('Failed to load image:', e.target.src);
+    e.target.style.display = 'none'; // Hide broken image
   };
 
   if (loading) return <div className="loading">Loading profile...</div>;
@@ -179,11 +211,20 @@ const Profile = () => {
       <div className="profile-header">
         <div className="profile-avatar">
           {user.profile_picture ? (
-            <img
-              src={`data:image/jpeg;base64,${user.profile_picture}`}
-              alt="Profile"
-              className="avatar-image"
-            />
+            typeof user.profile_picture === 'string' ? (
+              <img
+                src={user.profile_picture}
+                alt="Profile"
+                className="avatar-image"
+                onError={handleImageError}
+              />
+            ) : (
+              <img
+                src={URL.createObjectURL(user.profile_picture)}
+                alt="Profile Preview"
+                className="avatar-image"
+              />
+            )
           ) : (
             <div className="avatar-placeholder">
               <FaUser size={48} />
@@ -226,8 +267,9 @@ const Profile = () => {
                       <div className="instructor-avatar">
                         {instructor.profile_picture ? (
                           <img
-                            src={`data:image/jpeg;base64,${instructor.profile_picture}`}
+                            src={instructor.profile_picture}
                             alt={instructor.username}
+                            onError={handleImageError}
                           />
                         ) : (
                           <FaUserTie size={24} />
