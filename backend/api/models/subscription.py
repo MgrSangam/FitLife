@@ -8,7 +8,6 @@ User = get_user_model()
 
 class SubscriptionPlan(models.Model):
     PLAN_CHOICES = (
-        ('basic', 'Basic'),
         ('premium', 'Premium'),
     )
 
