@@ -17,6 +17,7 @@ import ChallengeManagement from "./AdminPages/ChallengeManagement";
 import ContentManagement from "./AdminPages/ContentManagement";
 import UserList from "./AdminPages/UserList";
 import MealManagement from "./AdminPages/MealManagement";
+import SubscriptionManagement from "./AdminPages/SubscriptionManagement";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -30,6 +31,7 @@ const AdminPage = () => {
     { id: "meals", label: "Meals", icon: <FaClipboardList />, component: <MealManagement /> },
     { id: "challenges", label: "Challenges", icon: <FaTrophy />, component: <ChallengeManagement /> },
     { id: "content", label: "Content", icon: <FaVideo />, component: <ContentManagement /> },
+    { id: "subscriptions", label: "Subscriptions", icon: <FaUserPlus />, component: <SubscriptionManagement /> },
     { id: "users", label: "Users", icon: <FaUsers />, component: <UserList /> }
   ];
 
