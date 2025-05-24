@@ -8,8 +8,8 @@ from .fitness_plan import FitnessPlanViewSet, FitnessPlanUserViewSet, FitnessPla
 from .meal_plan import MealPlanViewSet, MealPlanUserViewSet, MealFoodViewSet
 from .subscription import SubscriptionViewSet
 from .user import UserViewSet, InstructorViewSet, user_profile, instructor_dashboard, client_details, assigned_instructors
-from .chat import chat_messages
 from .dashboard import dashboard
+from .chat import MessageListCreateView, MessageMarkAsReadView, ConversationListView
 
 
 __all__ = [
@@ -24,6 +24,6 @@ __all__ = [
     'SubscriptionViewSet',
     'UserViewSet', 'InstructorViewSet', 'user_profile', 
     'instructor_dashboard', 'client_details', 'assigned_instructors',
-    'chat_messages',
+    'MessageListCreateView', 'MessageMarkAsReadView', 'ConversationListView',
     'dashboard',
 ]

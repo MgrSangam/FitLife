@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AxiosInstance from '../components/Axiosinstance';
-import { FaComments, FaUserTie, FaPaperPlane, FaUser, FaEdit, FaCamera } from 'react-icons/fa';
+import { FaUserTie, FaUser, FaEdit, FaCamera, FaComments } from 'react-icons/fa';
 import {
   FaEnvelope,
   FaCalendarAlt,
@@ -22,12 +22,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [activeChat, setActiveChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
-  const BASE_URL = 'http://localhost:8000'; // Adjust if your backend runs on a different host/port
+  const BASE_URL = 'http://localhost:8000';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,9 +33,6 @@ const Profile = () => {
           AxiosInstance.get('/api/user/profile/'),
           AxiosInstance.get('/api/user/assigned-instructors/')
         ]);
-        console.log('Profile data:', profileRes.data);
-        console.log('Profile picture URL:', profileRes.data.profile_picture);
-        console.log('Instructors data:', instructorsRes.data);
         setUser({
           ...profileRes.data,
           profile_picture: profileRes.data.profile_picture
@@ -62,11 +55,6 @@ const Profile = () => {
         const errorMessage = err.response
           ? `Error ${err.response.status}: ${err.response.data?.detail || 'Unknown error'}`
           : `Network error: ${err.message}`;
-        console.error('Fetch error:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status
-        });
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -74,51 +62,6 @@ const Profile = () => {
     };
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (activeChat) {
-      const fetchMessages = async () => {
-        try {
-          const response = await AxiosInstance.get(`/api/chat/${activeChat.id}/`);
-          setMessages(response.data);
-        } catch (err) {
-          console.error('Error fetching messages:', err);
-        }
-      };
-      fetchMessages();
-    }
-  }, [activeChat]);
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || isSending || !activeChat) return;
-
-    setIsSending(true);
-    try {
-      const response = await AxiosInstance.post(`/api/chat/${activeChat.id}/`, {
-        message: newMessage
-      });
-      setMessages([...messages, response.data]);
-      setNewMessage('');
-    } catch (err) {
-      let errorMessage = 'Failed to send message';
-      if (err.response) {
-        errorMessage = `Error ${err.response.status}: ${err.response.data?.message || err.response.data?.error || 'Unknown error'}`;
-      }
-      alert(errorMessage);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const openChat = (instructor) => {
-    setActiveChat(instructor);
-  };
-
-  const closeChat = () => {
-    setActiveChat(null);
-    setNewMessage('');
-  };
 
   const handleProfilePictureChange = async (e) => {
     const file = e.target.files[0];
@@ -135,7 +78,6 @@ const Profile = () => {
             'Content-Type': 'multipart/form-data'
           }
         });
-        console.log('Profile picture update response:', response.data);
         setUser(prev => ({
           ...prev,
           profile_picture: response.data.profile_picture
@@ -156,7 +98,7 @@ const Profile = () => {
 
   const handleImageError = (e) => {
     console.error('Failed to load image:', e.target.src);
-    e.target.style.display = 'none'; // Hide broken image
+    e.target.style.display = 'none';
   };
 
   if (loading) return <div className="loading">Loading profile...</div>;
@@ -165,49 +107,6 @@ const Profile = () => {
 
   return (
     <div className="profile-container">
-      {activeChat && (
-        <div className="message-overlay">
-          <div className="message-form-container">
-            <h3>Send Message to {activeChat.username}</h3>
-            <div className="profile-chat-messages">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`profile-chat-message ${
-                    message.sender === user.username ? 'sent' : 'received'
-                  }`}
-                >
-                  <p>{message.message}</p>
-                  <span className="message-time">
-                    {new Date(message.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <form onSubmit={handleSendMessage} className="message-form">
-              <textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message here..."
-                rows="3"
-                disabled={isSending}
-              />
-              <div className="form-actions">
-                <button type="submit" disabled={!newMessage.trim() || isSending}>
-                  {isSending ? 'Sending...' : 'Send'}
-                </button>
-                <button type="button" onClick={closeChat}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       <div className="profile-header">
         <div className="profile-avatar">
           {user.profile_picture ? (
@@ -245,12 +144,20 @@ const Profile = () => {
           <p className="username">@{user.username}</p>
           {user.bio && !editing && <p className="bio">{user.bio}</p>}
         </div>
-        <button
-          className="edit-profile-btn"
-          onClick={() => setEditing(!editing)}
-        >
-          <FaEdit /> {editing ? 'Cancel' : 'Edit Profile'}
-        </button>
+        <div className="profile-actions">
+          <button
+            className="edit-profile-btn"
+            onClick={() => setEditing(!editing)}
+          >
+            <FaEdit /> {editing ? 'Cancel' : 'Edit Profile'}
+          </button>
+          <button 
+            className="chat-btn"
+            onClick={() => navigate('/chat')}
+          >
+            <FaComments /> Messages
+          </button>
+        </div>
       </div>
 
       <div className="profile-content">
@@ -283,12 +190,6 @@ const Profile = () => {
                             : 'Nutritionist'}
                         </p>
                         <p className="instructor-bio">{instructor.bio || 'No bio provided'}</p>
-                        <button
-                          className="chat-btn"
-                          onClick={() => openChat(instructor)}
-                        >
-                          <FaComments /> Message
-                        </button>
                       </div>
                     </div>
                   ))}

@@ -6,7 +6,6 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from rest_framework.authentication import SessionAuthentication
 from knox.auth import TokenAuthentication
-from ..models import ChatMessage
 from ..serializers import UserSerializer, CustomUserSerializer
 
 User = get_user_model()

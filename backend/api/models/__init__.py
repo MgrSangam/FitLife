@@ -9,6 +9,7 @@ from .meal import MealPlan, MealPlanUser, MealFood
 from .subscription import SubscriptionPlan
 from .chat import ChatMessage
 
+
 __all__ = [
     'CustomUser',
     'Challenge', 'ChallengeParticipant',

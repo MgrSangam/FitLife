@@ -1,0 +1,79 @@
+/* Add these styles to your existing ChatPage.css */
+
+.assigned-instructors-section {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.assigned-instructors-section h3 {
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.instructors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.instructor-card {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  background-color: #f9f9f9;
+}
+
+.instructor-card:hover {
+  background-color: #f0f0f0;
+}
+
+.instructor-card.active {
+  background-color: #e0e8f5;
+}
+
+.instructor-avatar {
+  margin-right: 10px;
+}
+
+.instructor-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.instructor-avatar svg {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  color: #666;
+}
+
+.instructor-info h4 {
+  margin: 0 0 3px 0;
+  font-size: 0.95rem;
+}
+
+.instructor-specialization {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .instructors-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .instructor-card {
+    padding: 8px;
+  }
+}

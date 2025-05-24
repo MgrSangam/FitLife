@@ -18,7 +18,7 @@ import FitnessPlanDetail from './Pages/InternalPages/FitnessDescription'
 import MealPlanDetail from './Pages/InternalPages/MealPlanDetails'
 import Profile from './Pages/Profile'
 import Payment from './components/Payment'
-import Chat from './components/Chat'
+import ChatPage from './components/ChatPage' // Update this import to use ChatPage instead of Chat
 import ProtectedRoute from './components/ProtectedRoutes'
 import AdminPage from './Pages/Admin'
 import PasswordResetRequest from './components/PasswordResetRequest'
@@ -40,27 +40,20 @@ function App() {
                    location.pathname === '/admin'
   return (
     <>
-
-    {
-      noNavbar ?(
-      <Routes>
-         <Route path='/' element={<Login />} />
-         <Route path='/register' element={<Register />} />
-         <Route path='/reset' element={< PasswordResetRequest/>} />
-         <Route path='/password-reset' element={< PasswordReset/>} />
-         
-         content = {
+      {noNavbar ? (
+        <Routes>
+          <Route path='/' element={<Login />} />
+          <Route path='/register' element={<Register />} />
+          <Route path='/reset' element={<PasswordResetRequest/>} />
+          <Route path='/password-reset' element={<PasswordReset/>} />
           <Route path='/admin' element={<AdminPage/>} />
-         }
-
-      </Routes>
-
-        ):(
-          <>
-      <Navbar
-          content={
-            <Routes>
-              <Route element={<ProtectedRoute/>}>
+        </Routes>
+      ) : (
+        <>
+          <Navbar
+            content={
+              <Routes>
+                <Route element={<ProtectedRoute/>}>
                   <Route path='/home' element={<Home />} />
                   <Route path='/challenges' element={<Challenge />} />
                   <Route path='/education' element={<Education/>} />
@@ -75,19 +68,14 @@ function App() {
                   <Route path='/mealplan-detail/:id' element={<MealPlanDetail/>} />
                   <Route path='/profile' element={<Profile/>} />
                   <Route path='/payment' element={<Payment/>} />
-                  <Route path='/chat/:userId' element={<Chat />} />
-              </Route>
-            </Routes>
-          } 
-      />
-      <Footer/>
-      </>
-        )
-
-    }
-      
-      
-
+                  <Route path='/chat' element={<ChatPage />} />
+                </Route>
+              </Routes>
+            } 
+          />
+          <Footer/>
+        </>
+      )}
     </>
   )
 }

@@ -1,101 +1,88 @@
-import logging
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from django.db import models
-from django.contrib.auth import get_user_model
+from django.db.models import Q
+from rest_framework import generics
 from ..models import ChatMessage
-from ..serializers import ChatMessageSerializer, UserSerializer
-
+from ..serializers.chat import ChatMessageSerializer
+from knox.auth import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from ..serializers.user import UserSerializer
+from django.contrib.auth import get_user_model
 User = get_user_model()
-logger = logging.getLogger(__name__)
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def chat_messages(request, user_id=None):
-    try:
-        if request.method == 'GET':
-            if user_id:
-                other_user = User.objects.get(id=user_id)
-                
-                if not can_users_chat(request.user, other_user):
-                    return Response(
-                        {"error": "You can only message your assigned instructors/clients"},
-                        status=status.HTTP_403_FORBIDDEN
-                    )
-                
-                messages = ChatMessage.objects.filter(
-                    models.Q(sender=request.user, recipient=other_user) |
-                    models.Q(sender=other_user, recipient=request.user)
-                ).order_by('timestamp')
-                
-                serializer = ChatMessageSerializer(messages, many=True)
-                return Response(serializer.data)
-            else:
-                if request.user.is_instructor:
-                    if request.user.specialization == 'trainer':
-                        users = User.objects.filter(subscription__trainer=request.user)
-                    elif request.user.specialization == 'nutritionist':
-                        users = User.objects.filter(subscription__nutritionist=request.user)
-                    else:
-                        users = User.objects.none()
-                else:
-                    try:
-                        subscription = request.user.subscription
-                        users = User.objects.none()
-                        if subscription.trainer:
-                            users = users | User.objects.filter(id=subscription.trainer.id)
-                        if subscription.nutritionist:
-                            users = users | User.objects.filter(id=subscription.nutritionist.id)
-                    except AttributeError:
-                        users = User.objects.none()
-                
-                serializer = UserSerializer(users, many=True)
-                return Response(serializer.data)
+from rest_framework import status
+from rest_framework.response import Response
+
+class MessageListCreateView(generics.ListCreateAPIView):
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        other_user_id = self.request.query_params.get('other_user')
         
-        elif request.method == 'POST':
-            if not user_id:
-                return Response({"error": "Recipient ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            recipient = User.objects.get(id=user_id)
-            
-            if not can_users_chat(request.user, recipient):
-                return Response(
-                    {"error": "You can only message your assigned instructors/clients"},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-            
-            message_text = request.data.get('message', '').strip()
-            if not message_text:
-                return Response({"error": "Message cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            message = ChatMessage.objects.create(
-                sender=request.user,
-                recipient=recipient,
-                message=message_text
-            )
-            
-            serializer = ChatMessageSerializer(message, context={'request': request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        logger.error(f"Error in chat_messages: {str(e)}")
-        return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if other_user_id:
+            return ChatMessage.objects.filter(
+                (Q(sender=user) & Q(recipient_id=other_user_id)) |
+                (Q(sender_id=other_user_id) & Q(recipient=user))
+            ).select_related('sender', 'recipient').order_by('timestamp')
+        
+        return ChatMessage.objects.filter(
+            Q(sender=user) | Q(recipient=user)
+        ).select_related('sender', 'recipient').order_by('timestamp')
 
-def can_users_chat(user1, user2):
-    """Check if two users are allowed to chat with each other"""
-    if user1.is_instructor:
-        if user1.specialization == 'trainer':
-            return user2.subscription.trainer == user1
-        elif user1.specialization == 'nutritionist':
-            return user2.subscription.nutritionist == user1
-    else:
+    def create(self, request, *args, **kwargs):
+        # Get recipient_id from request data
+        recipient_id = request.data.get('recipient_id')
+        if not recipient_id:
+            return Response(
+                {"error": "recipient_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
-            subscription = user1.subscription
-            return (subscription.trainer == user2) or (subscription.nutritionist == user2)
-        except AttributeError:
-            return False
-    return False
+            recipient = User.objects.get(id=recipient_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Recipient not found"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if recipient == request.user:
+            return Response(
+                {"error": "Cannot send message to yourself"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(data={
+            'recipient': recipient.id,
+            'message': request.data.get('message', '')
+        })
+        serializer.is_valid(raise_exception=True)
+        serializer.save(sender=request.user)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class MessageMarkAsReadView(generics.UpdateAPIView):
+    queryset = ChatMessage.objects.all()
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+        serializer.save(is_read=True)
+
+class ConversationListView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Get all users this user has chatted with
+        senders = ChatMessage.objects.filter(
+            recipient=user
+        ).values_list('sender', flat=True).distinct()
+        
+        recipients = ChatMessage.objects.filter(
+            sender=user
+        ).values_list('recipient', flat=True).distinct()
+        
+        user_ids = set(list(senders) + list(recipients))
+        return User.objects.filter(id__in=user_ids)

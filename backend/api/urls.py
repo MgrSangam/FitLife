@@ -25,8 +25,14 @@ from api.views.user import (
     client_details,
     assigned_instructors
 )
-from api.views.chat import chat_messages
+
 from api.views.dashboard import dashboard
+
+from api.views.chat import (
+    MessageListCreateView,
+    MessageMarkAsReadView,
+    ConversationListView
+)
 
 router = DefaultRouter()
 
@@ -80,8 +86,10 @@ urlpatterns = [
     path('api/clients/<int:client_id>/', client_details, name='client-details'),
     
     # Chat routes
-    path('api/chat/<int:user_id>/', chat_messages, name='chat-messages'),
-    path('api/chat/', chat_messages, name='chat-list'),
+    path('api/chat/messages/', MessageListCreateView.as_view(), name='message-list'),
+    path('api/chat/messages/<int:pk>/read/', MessageMarkAsReadView.as_view(), name='message-read'),
+    path('api/chat/conversations/', ConversationListView.as_view(), name='conversation-list'),
+
     
     # Instructor assignment routes
     path('api/user/assigned-instructors/', assigned_instructors, name='assigned-instructors'),

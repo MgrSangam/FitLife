@@ -8,8 +8,8 @@ from .fitness_plan import FitnessPlanSerializer, FitnessPlanExerciseSerializer, 
 from .meal_plan import MealPlanSerializer, MealFoodSerializer, MealPlanUserSerializer
 from .subscription import SubscriptionSerializer
 from .user import UserSerializer, CustomUserSerializer
-from .chat import ChatMessageSerializer
 from .dashboard import DashboardSerializer
+from .chat import ChatMessageSerializer
 
 __all__ = [
     'RegisterSerializer', 'LoginSerializer',

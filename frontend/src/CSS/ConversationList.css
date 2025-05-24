@@ -1,0 +1,85 @@
+.conversations-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.list-header {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.list-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.loading-conversations, .no-conversations, .error-conversations {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.no-conversations {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-conversations p {
+  margin-top: 10px;
+}
+
+.conversations-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversations-list li {
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.conversations-list li:hover {
+  background-color: #f5f5f5;
+}
+
+.user-avatar {
+  margin-right: 10px;
+}
+
+.user-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.user-avatar .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.user-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1em;
+}
+
+.user-info p {
+  margin: 0;
+  font-size: 0.8em;
+  color: #666;
+}

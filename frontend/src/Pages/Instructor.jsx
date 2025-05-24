@@ -18,10 +18,6 @@ const Instructor = () => {
   const [instructorData, setInstructorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [clients, setClients] = useState([]);
-  const [selectedClient, setSelectedClient] = useState(null);
-  const [newMessage, setNewMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     const fetchInstructorData = async () => {
@@ -36,11 +32,9 @@ const Instructor = () => {
 
         const response = await AxiosInstance.get('/api/instructor/dashboard/');
         
-        const clients = response.data.clients || [];
-        
         setInstructorData({
           ...response.data,
-          clients: clients.map(client => ({
+          clients: (response.data.clients || []).map(client => ({
             ...client,
             username: client.username || '',
             email: client.email || '',
@@ -52,7 +46,6 @@ const Instructor = () => {
                            err.message || 
                            "Failed to fetch instructor data";
         setError(errorMessage);
-        console.error("Error details:", err.response?.data);
         
         if (err.response?.status === 403) {
           navigate("/login", { replace: true });
@@ -64,54 +57,6 @@ const Instructor = () => {
 
     fetchInstructorData();
   }, [navigate]);
-
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await AxiosInstance.get('/api/chat/');
-        setClients(response.data);
-      } catch (err) {
-        console.error('Error fetching clients:', err);
-      }
-    };
-    fetchClients();
-  }, []);
-
-  const handleClientClick = (clientId) => {
-    navigate(`/chat/${clientId}`);
-  };
-
-  const openMessageForm = (client) => {
-    setSelectedClient(client);
-  };
-
-  const closeMessageForm = () => {
-    setSelectedClient(null);
-    setNewMessage('');
-  };
-
-  const sendMessageToClient = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || isSending || !selectedClient) return;
-
-    setIsSending(true);
-    try {
-      const response = await AxiosInstance.post(`/api/chat/${selectedClient.id}/`, {
-        message: newMessage
-      });
-      console.log('Message sent:', response.data);
-      setNewMessage('');
-      closeMessageForm();
-    } catch (err) {
-      let errorMessage = 'Failed to send message';
-      if (err.response) {
-        errorMessage = `Error ${err.response.status}: ${err.response.data?.message || err.response.data?.error || 'Unknown error'}`;
-      }
-      alert(errorMessage);
-    } finally {
-      setIsSending(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -254,57 +199,27 @@ const Instructor = () => {
             <span>Create Meal Plan</span>
           </button>
         )}
+        <button
+          onClick={() => navigate("/chat")}
+          className="btn btn-chat"
+        >
+          <FaComments />
+          <span>Messages</span>
+        </button>
       </div>
 
-      {clients.length > 0 && (
+      {instructorData.clients?.length > 0 && (
         <div className="clients-section">
           <h3>Your Clients</h3>
           <div className="clients-list">
-            {clients.map((client) => (
+            {instructorData.clients.map((client) => (
               <div key={client.id} className="client-card">
                 <div className="client-info">
                   <h4>{client.username}</h4>
                   <p>{client.email}</p>
                 </div>
-                <button 
-                  className="chat-btn"
-                  onClick={() => openMessageForm(client)}
-                >
-                  <FaComments /> Quick Message
-                </button>
-                <button 
-                  className="chat-btn"
-                  onClick={() => handleClientClick(client.id)}
-                >
-                  <FaComments /> Open Chat
-                </button>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {selectedClient && (
-        <div className="message-overlay">
-          <div className="message-form-container">
-            <h3>Send Message to {selectedClient.username}</h3>
-            <form onSubmit={sendMessageToClient} className="message-form">
-              <textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message here..."
-                rows="3"
-                disabled={isSending}
-              />
-              <div className="form-actions">
-                <button type="submit" disabled={!newMessage.trim() || isSending}>
-                  {isSending ? 'Sending...' : 'Send'}
-                </button>
-                <button type="button" onClick={closeMessageForm}>
-                  Cancel
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

@@ -3,7 +3,12 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import *
+from .models import Challenge, ChallengeParticipant, EducationalContent, Goal, Exercise, Food
+from .models import FitnessPlan, FitnessPlanUser, FitnessPlanExercise
+from .models import MealPlan, MealPlanUser, MealFood
+from .models import SubscriptionPlan
+from .models import CustomUser
+
 from django import forms
 
 
