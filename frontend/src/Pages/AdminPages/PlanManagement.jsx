@@ -443,12 +443,12 @@ const PlanManagement = () => {
                     <td className="description-cell">{plan.description}</td>
                     <td>
                       <div className="action-buttons">
-                        <button
+                        {/* <button
                           className="edit-button"
                           onClick={() => handleEditPlan(plan)}
                         >
                           <FaEdit />
-                        </button>
+                        </button> */}
                         <button
                           className="delete-button"
                           onClick={() => handleDeleteFitnessPlan(plan.id)}

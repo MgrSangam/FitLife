@@ -181,24 +181,6 @@ const Instructor = () => {
       </section>
 
       <div className="action-buttons">
-        {instructorData.specialization?.toLowerCase() === "trainer" && (
-          <button
-            onClick={() => navigate("/create-plan")}
-            className="btn btn-primary"
-          >
-            <FaDumbbell />
-            <span>Create Fitness Plan</span>
-          </button>
-        )}
-        {instructorData.specialization?.toLowerCase() === "nutritionist" && (
-          <button
-            onClick={() => navigate("/create-meal")}
-            className="btn btn-success"
-          >
-            <FaUtensils />
-            <span>Create Meal Plan</span>
-          </button>
-        )}
         <button
           onClick={() => navigate("/chat")}
           className="btn btn-chat"

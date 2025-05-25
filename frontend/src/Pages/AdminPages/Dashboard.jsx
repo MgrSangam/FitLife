@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AxiosInstance from "../../components/Axiosinstance";
-import { FaUsers, FaCalendarAlt, FaTrophy, FaVideo, FaUserPlus, FaUtensils } from "react-icons/fa";
+import { FaUsers, FaCalendarAlt, FaTrophy, FaVideo, FaUtensils } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import "../../CSS/Dashboard.css";
 
@@ -159,7 +159,6 @@ const Dashboard = () => {
           {recentActivities.length > 0 ? (
             recentActivities.map((activity, index) => (
               <div key={index} className="activity-item">
-                <span className="activity-icon">{activity.icon || <FaUserPlus />}</span>
                 <div className="activity-content">
                   <p>{activity.description}</p>
                   <span className="activity-time">
@@ -173,8 +172,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
-      
     </div>
   );
 };

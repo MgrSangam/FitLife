@@ -43,8 +43,7 @@ const Subscription = () => {
               <span className="money">Rs. 500</span> /month
             </h3>
             <div className="feature-list">
-              <span className="list-item"><FaCheckCircle /> Create Fitness Plans</span>
-              <span className="list-item"><FaCheckCircle /> Create Meal Plans</span>
+
               <span className="list-item"><FaCheckCircle /> Assigned Trainer & Nutritionist</span>
             </div>
             <button 

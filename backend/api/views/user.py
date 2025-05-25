@@ -25,6 +25,16 @@ class InstructorViewSet(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = [AllowAny]
 
+    def create(self, request, *args, **kwargs):
+        # Ensure is_instructor is set to True for new instructors
+        data = request.data.copy()
+        data['is_instructor'] = True
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):

@@ -21,6 +21,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'is_instructor', 'specialization', 'experience', 'bio', 'contact', 'birthday', 'age',
             'assigned_clients_count', 'clients', 'profile_picture'
         ]
+        extra_kwargs = {
+            'password': {'write_only': True},  # Ensure password is write-only
+        }
 
     def get_assigned_clients_count(self, obj):
         if 'clients' in self.context:
@@ -52,3 +55,35 @@ class CustomUserSerializer(serializers.ModelSerializer):
             }
             for client in clients
         ]
+
+    def create(self, validated_data):
+        # Handle password hashing for new user creation
+        user = User.objects.create_user(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            password=validated_data.get('password'),
+            is_instructor=validated_data.get('is_instructor', False),
+            contact=validated_data.get('contact', None),
+            experience=validated_data.get('experience', None),
+            bio=validated_data.get('bio', None),
+            specialization=validated_data.get('specialization', None),
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            weight=validated_data.get('weight', None),
+            height=validated_data.get('height', None),
+            birthday=validated_data.get('birthday', None),
+            age=validated_data.get('age', None),
+        )
+        return user
+
+    def update(self, instance, validated_data):
+        # Handle password update separately if provided
+        if 'password' in validated_data:
+            instance.set_password(validated_data.pop('password'))
+        
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance

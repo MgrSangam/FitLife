@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaUserPlus, FaEdit, FaTrash } from "react-icons/fa";
-import AxiosInstance from '../../components/Axiosinstance';  // Import AxiosInstance
+import AxiosInstance from '../../components/Axiosinstance';
 import "../../CSS/InstructorManagement.css";
 
 const InstructorManagement = () => {
@@ -12,8 +12,10 @@ const InstructorManagement = () => {
     contact: "",
     experience: "",
     bio: "",
-    specialization: ""
+    specialization: "",
+    is_instructor: true
   });
+  const [editingInstructor, setEditingInstructor] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
 
@@ -24,7 +26,7 @@ const InstructorManagement = () => {
   const fetchInstructors = async () => {
     try {
       const response = await AxiosInstance.get("/instructors/");
-      console.log("Fetched instructors:", response.data); // Log the response
+      console.log("Fetched instructors:", response.data);
       setInstructors(response.data);
     } catch (error) {
       console.error("Error fetching instructors:", error.response?.data || error.message);
@@ -37,9 +39,9 @@ const InstructorManagement = () => {
     setTimeout(() => setNotification({ show: false, message: "", type: "" }), 3000);
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e, setter) => {
     const { name, value } = e.target;
-    setNewInstructor(prev => ({ ...prev, [name]: value }));
+    setter(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAddInstructor = async () => {
@@ -52,12 +54,13 @@ const InstructorManagement = () => {
       showNotification("Username, email, password, and a valid specialization are required", "error");
       return;
     }
-  
+
     const payload = {
       ...newInstructor,
-      specialization: newInstructor.specialization || null, // Send null if empty
+      is_instructor: true,
+      specialization: newInstructor.specialization || null,
     };
-  
+
     try {
       console.log("Instructor to add:", payload);
       await AxiosInstance.post("/instructors/", payload);
@@ -69,13 +72,59 @@ const InstructorManagement = () => {
         contact: "",
         experience: "",
         bio: "",
-        specialization: ""
+        specialization: "",
+        is_instructor: true
       });
       setIsAdding(false);
       showNotification("Instructor added successfully!", "success");
     } catch (error) {
       console.error("Error adding instructor:", error.response?.data);
       showNotification(`Failed to add instructor: ${JSON.stringify(error.response?.data)}`, "error");
+    }
+  };
+
+  const handleEditInstructor = (instructor) => {
+    setEditingInstructor({
+      id: instructor.id,
+      username: instructor.username,
+      email: instructor.email,
+      password: "", // Password is not fetched; leave empty for security
+      contact: instructor.contact || "",
+      experience: instructor.experience || "",
+      bio: instructor.bio || "",
+      specialization: instructor.specialization || "",
+      is_instructor: true
+    });
+    setIsAdding(false); // Ensure add form is hidden
+  };
+
+  const handleUpdateInstructor = async () => {
+    if (
+      !editingInstructor.username ||
+      !editingInstructor.email ||
+      !["trainer", "nutritionist"].includes(editingInstructor.specialization)
+    ) {
+      showNotification("Username, email, and a valid specialization are required", "error");
+      return;
+    }
+
+    const payload = {
+      ...editingInstructor,
+      is_instructor: true,
+      specialization: editingInstructor.specialization || null,
+      // Only include password if provided
+      ...(editingInstructor.password && { password: editingInstructor.password }),
+    };
+
+    try {
+      console.log("Instructor to update:", payload);
+      await AxiosInstance.put(`/instructors/${editingInstructor.id}/`, payload);
+      fetchInstructors();
+      setEditingInstructor(null);
+      showNotification("Instructor updated successfully!", "success");
+    } catch (error) {
+      console.error("Error updating instructor:", error.response?.data);
+      showNotification(`Failed to update instructor: ${JSON.stringify(error.response?.data)}`, "error");
     }
   };
 
@@ -99,7 +148,7 @@ const InstructorManagement = () => {
 
       <div className="management-header">
         <h2>Instructors</h2>
-        {!isAdding && (
+        {!isAdding && !editingInstructor && (
           <button onClick={() => setIsAdding(true)} className="add-instructor-btn">
             <FaUserPlus className="icon" />
             Add Instructor
@@ -115,33 +164,33 @@ const InstructorManagement = () => {
               id="username"
               label="Username"
               value={newInstructor.username}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e, setNewInstructor)}
             />
             <FormField
               id="email"
               label="Email"
               type="email"
               value={newInstructor.email}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e, setNewInstructor)}
             />
             <FormField
               id="password"
               label="Password"
               type="password"
               value={newInstructor.password}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e, setNewInstructor)}
             />
             <FormField
               id="contact"
               label="Contact"
               value={newInstructor.contact}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e, setNewInstructor)}
             />
             <FormField
               id="experience"
               label="Experience"
               value={newInstructor.experience}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e, setNewInstructor)}
             />
             <div className="form-group">
               <label htmlFor="specialization">Specialization</label>
@@ -149,7 +198,7 @@ const InstructorManagement = () => {
                 id="specialization"
                 name="specialization"
                 value={newInstructor.specialization}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange(e, setNewInstructor)}
               >
                 <option value="">Select Specialization</option>
                 <option value="trainer">Trainer</option>
@@ -162,7 +211,7 @@ const InstructorManagement = () => {
                 id="bio"
                 name="bio"
                 value={newInstructor.bio}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange(e, setNewInstructor)}
                 placeholder="Brief bio (max 500 characters)"
                 rows="3"
               />
@@ -174,6 +223,78 @@ const InstructorManagement = () => {
             </button>
             <button className="submit-btn" onClick={handleAddInstructor}>
               Add Instructor
+            </button>
+          </div>
+        </div>
+      )}
+
+      {editingInstructor && (
+        <div className="add-instructor-form">
+          <h3>Edit Instructor</h3>
+          <div className="form-grid">
+            <FormField
+              id="username"
+              label="Username"
+              value={editingInstructor.username}
+              onChange={(e) => handleInputChange(e, setEditingInstructor)}
+            />
+            <FormField
+              id="email"
+              label="Email"
+              type="email"
+              value={editingInstructor.email}
+              onChange={(e) => handleInputChange(e, setEditingInstructor)}
+            />
+            <FormField
+              id="password"
+              label="Password (leave blank to keep unchanged)"
+              type="password"
+              value={editingInstructor.password}
+              onChange={(e) => handleInputChange(e, setEditingInstructor)}
+            />
+            <FormField
+              id="contact"
+              label="Contact"
+              value={editingInstructor.contact}
+              onChange={(e) => handleInputChange(e, setEditingInstructor)}
+            />
+            <FormField
+              id="experience"
+              label="Experience"
+              value={editingInstructor.experience}
+              onChange={(e) => handleInputChange(e, setEditingInstructor)}
+            />
+            <div className="form-group">
+              <label htmlFor="specialization">Specialization</label>
+              <select
+                id="specialization"
+                name="specialization"
+                value={editingInstructor.specialization}
+                onChange={(e) => handleInputChange(e, setEditingInstructor)}
+              >
+                <option value="">Select Specialization</option>
+                <option value="trainer">Trainer</option>
+                <option value="nutritionist">Nutritionist</option>
+              </select>
+            </div>
+            <div className="form-group full-width">
+              <label htmlFor="bio">Bio</label>
+              <textarea
+                id="bio"
+                name="bio"
+                value={editingInstructor.bio}
+                onChange={(e) => handleInputChange(e, setEditingInstructor)}
+                placeholder="Brief bio (max 500 characters)"
+                rows="3"
+              />
+            </div>
+          </div>
+          <div className="form-actions">
+            <button className="cancel-btn" onClick={() => setEditingInstructor(null)}>
+              Cancel
+            </button>
+            <button className="submit-btn" onClick={handleUpdateInstructor}>
+              Update Instructor
             </button>
           </div>
         </div>
@@ -199,7 +320,10 @@ const InstructorManagement = () => {
                 <td>{instructor.specialization === 'trainer' ? 'Trainer' : 'Nutritionist'}</td>
                 <td>
                   <div className="action-buttons">
-                    <button className="edit-btn">
+                    <button
+                      className="edit-btn"
+                      onClick={() => handleEditInstructor(instructor)}
+                    >
                       <FaEdit className="icon" />
                     </button>
                     <button
@@ -229,7 +353,7 @@ const FormField = ({ id, label, value, onChange, type = "text" }) => (
       value={value}
       onChange={onChange}
       placeholder={label}
-      required
+      required={type !== "password"} // Password not required for edit
     />
   </div>
 );

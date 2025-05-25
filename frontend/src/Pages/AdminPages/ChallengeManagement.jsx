@@ -8,6 +8,8 @@ const ChallengeManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingChallenge, setEditingChallenge] = useState(null);
   const [newChallenge, setNewChallenge] = useState({
     title: "",
     description: "",
@@ -19,6 +21,8 @@ const ChallengeManagement = () => {
     end_date: "",
     image: null
   });
+  const [imagePreview, setImagePreview] = useState(null);
+  const [notification, setNotification] = useState({ show: false, message: "", type: "" });
 
   useEffect(() => {
     const fetchChallenges = async () => {
@@ -28,6 +32,7 @@ const ChallengeManagement = () => {
       } catch (err) {
         setError("Failed to fetch challenges");
         console.error(err);
+        showNotification("Failed to fetch challenges", "error");
       } finally {
         setIsLoading(false);
       }
@@ -36,18 +41,45 @@ const ChallengeManagement = () => {
     fetchChallenges();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewChallenge(prev => ({ ...prev, [name]: value }));
+  const showNotification = (message, type) => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: "", type: "" }), 3000);
   };
 
-  const handleImageChange = (e) => {
-    setNewChallenge(prev => ({ ...prev, image: e.target.files[0] }));
+  const handleInputChange = (e, setter) => {
+    const { name, value } = e.target;
+    setter(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e, setter, setPreview) => {
+    const file = e.target.files[0];
+    if (file) {
+      setter(prev => ({ ...prev, image: file }));
+      setPreview(URL.createObjectURL(file));
+    } else {
+      setter(prev => ({ ...prev, image: null }));
+      setPreview(null);
+    }
+  };
+
+  const resetForm = () => {
+    setNewChallenge({
+      title: "",
+      description: "",
+      duration: "",
+      difficulty: "beginner",
+      muscle_group: "chest",
+      workout_type: "strength",
+      start_date: "",
+      end_date: "",
+      image: null
+    });
+    setImagePreview(null);
   };
 
   const handleAddChallenge = async () => {
     if (!newChallenge.title || !newChallenge.duration || !newChallenge.start_date || !newChallenge.end_date) {
-      alert("Please fill all required fields");
+      showNotification("Please fill all required fields", "error");
       return;
     }
 
@@ -62,24 +94,73 @@ const ChallengeManagement = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       setChallenges([response.data, ...challenges]);
-      setNewChallenge({
-        title: "",
-        description: "",
-        duration: "",
-        difficulty: "beginner",
-        muscle_group: "chest",
-        workout_type: "strength",
-        start_date: "",
-        end_date: "",
-        image: null
-      });
+      resetForm();
       setIsAdding(false);
-      alert("Challenge added successfully!");
+      showNotification("Challenge added successfully!", "success");
     } catch (err) {
-      alert("Failed to add challenge");
-      console.error(err);
+      console.error("Error adding challenge:", err.response?.data || err.message);
+      let errorMessage = "Failed to add challenge";
+      if (err.response?.data) {
+        errorMessage = Object.entries(err.response.data)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join('\n') || err.message;
+      }
+      showNotification(errorMessage, "error");
+    }
+  };
+
+  const handleEditChallenge = (challenge) => {
+    setEditingChallenge({
+      id: challenge.id,
+      title: challenge.title,
+      description: challenge.description || "",
+      duration: challenge.duration,
+      difficulty: challenge.difficulty,
+      muscle_group: challenge.muscle_group,
+      workout_type: challenge.workout_type,
+      start_date: challenge.start_date,
+      end_date: challenge.end_date,
+      image: null
+    });
+    setImagePreview(challenge.image_url || null);
+    setIsEditing(true);
+    setIsAdding(false);
+  };
+
+  const handleUpdateChallenge = async () => {
+    if (!editingChallenge.title || !editingChallenge.duration || !editingChallenge.start_date || !editingChallenge.end_date) {
+      showNotification("Please fill all required fields", "error");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      Object.entries(editingChallenge).forEach(([key, value]) => {
+        if (key !== 'id' && value !== null) formData.append(key, value);
+      });
+
+      const response = await axios.put(`/api/challenges/${editingChallenge.id}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setChallenges(challenges.map(challenge => challenge.id === editingChallenge.id ? response.data : challenge));
+      setEditingChallenge(null);
+      setIsEditing(false);
+      setImagePreview(null);
+      showNotification("Challenge updated successfully!", "success");
+    } catch (err) {
+      console.error("Error updating challenge:", err.response?.data || err.message);
+      let errorMessage = "Failed to update challenge";
+      if (err.response?.data) {
+        errorMessage = Object.entries(err.response.data)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join('\n') || err.message;
+      }
+      showNotification(errorMessage, "error");
     }
   };
 
@@ -89,10 +170,10 @@ const ChallengeManagement = () => {
     try {
       await axios.delete(`/api/challenges/${id}/`);
       setChallenges(challenges.filter(challenge => challenge.id !== id));
-      alert("Challenge deleted successfully!");
+      showNotification("Challenge deleted successfully!", "success");
     } catch (err) {
-      alert("Failed to delete challenge");
-      console.error(err);
+      console.error("Error deleting challenge:", err.response?.data || err.message);
+      showNotification("Failed to delete challenge", "error");
     }
   };
 
@@ -101,9 +182,15 @@ const ChallengeManagement = () => {
 
   return (
     <div className="challenge-management">
+      {notification.show && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
       <div className="header">
         <h2>Challenges</h2>
-        {!isAdding && (
+        {!isAdding && !isEditing && (
           <button className="add-button" onClick={() => setIsAdding(true)}>
             <FaPlus /> Add Challenge
           </button>
@@ -119,8 +206,8 @@ const ChallengeManagement = () => {
               <input
                 type="text"
                 name="title"
-                value={newChallenge.title || ""}
-                onChange={handleInputChange}
+                value={newChallenge.title}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
                 placeholder="Challenge Title"
                 required
               />
@@ -129,8 +216,8 @@ const ChallengeManagement = () => {
               <label>Difficulty*</label>
               <select
                 name="difficulty"
-                value={newChallenge.difficulty || "beginner"}
-                onChange={handleInputChange}
+                value={newChallenge.difficulty}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
               >
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
@@ -142,8 +229,8 @@ const ChallengeManagement = () => {
               <input
                 type="text"
                 name="duration"
-                value={newChallenge.duration || ""}
-                onChange={handleInputChange}
+                value={newChallenge.duration}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
                 placeholder="e.g., 30 days"
                 required
               />
@@ -152,8 +239,8 @@ const ChallengeManagement = () => {
               <label>Muscle Group*</label>
               <select
                 name="muscle_group"
-                value={newChallenge.muscle_group || "chest"}
-                onChange={handleInputChange}
+                value={newChallenge.muscle_group}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
               >
                 <option value="chest">Chest</option>
                 <option value="core">Core</option>
@@ -164,8 +251,8 @@ const ChallengeManagement = () => {
               <label>Workout Type*</label>
               <select
                 name="workout_type"
-                value={newChallenge.workout_type || "strength"}
-                onChange={handleInputChange}
+                value={newChallenge.workout_type}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
               >
                 <option value="strength">Strength</option>
                 <option value="cardio">Cardio</option>
@@ -176,8 +263,8 @@ const ChallengeManagement = () => {
               <input
                 type="date"
                 name="start_date"
-                value={newChallenge.start_date || ""}
-                onChange={handleInputChange}
+                value={newChallenge.start_date}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
                 required
               />
             </div>
@@ -186,8 +273,8 @@ const ChallengeManagement = () => {
               <input
                 type="date"
                 name="end_date"
-                value={newChallenge.end_date || ""}
-                onChange={handleInputChange}
+                value={newChallenge.end_date}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
                 required
               />
             </div>
@@ -196,37 +283,164 @@ const ChallengeManagement = () => {
               <input
                 type="file"
                 name="image"
-                onChange={handleImageChange}
+                onChange={(e) => handleImageChange(e, setNewChallenge, setImagePreview)}
                 accept="image/*"
               />
-             {newChallenge.image && (
-  <div className="image-preview">
-    <img 
-      src={URL.createObjectURL(newChallenge.image)} 
-      alt="Preview" 
-      className="preview-image"
-    />
-  </div>
-)}
-
+              {imagePreview && (
+                <div className="image-preview">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="preview-image"
+                  />
+                </div>
+              )}
             </div>
             <div className="form-group full-width">
               <label>Description</label>
               <textarea
                 name="description"
-                value={newChallenge.description || ""}
-                onChange={handleInputChange}
+                value={newChallenge.description}
+                onChange={(e) => handleInputChange(e, setNewChallenge)}
                 placeholder="Challenge description and rules"
                 rows={3}
               />
             </div>
           </div>
           <div className="form-actions">
-            <button className="cancel-button" onClick={() => setIsAdding(false)}>
+            <button className="cancel-button" onClick={() => {
+              setIsAdding(false);
+              resetForm();
+            }}>
               Cancel
             </button>
             <button className="submit-button" onClick={handleAddChallenge}>
               Add Challenge
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isEditing && editingChallenge && (
+        <div className="add-form">
+          <h3>Edit Challenge</h3>
+          <div className="form-grid">
+            <div className="form-group full-width">
+              <label>Title*</label>
+              <input
+                type="text"
+                name="title"
+                value={editingChallenge.title}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+                placeholder="Challenge Title"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Difficulty*</label>
+              <select
+                name="difficulty"
+                value={editingChallenge.difficulty}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advance">Advanced</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Duration*</label>
+              <input
+                type="text"
+                name="duration"
+                value={editingChallenge.duration}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+                placeholder="e.g., 30 days"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Muscle Group*</label>
+              <select
+                name="muscle_group"
+                value={editingChallenge.muscle_group}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+              >
+                <option value="chest">Chest</option>
+                <option value="core">Core</option>
+                <option value="full-body">Full Body</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Workout Type*</label>
+              <select
+                name="workout_type"
+                value={editingChallenge.workout_type}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+              >
+                <option value="strength">Strength</option>
+                <option value="cardio">Cardio</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Start Date*</label>
+              <input
+                type="date"
+                name="start_date"
+                value={editingChallenge.start_date}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>End Date*</label>
+              <input
+                type="date"
+                name="end_date"
+                value={editingChallenge.end_date}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+                required
+              />
+            </div>
+            <div className="form-group full-width">
+              <label>Challenge Image (leave blank to keep existing)</label>
+              <input
+                type="file"
+                name="image"
+                onChange={(e) => handleImageChange(e, setEditingChallenge, setImagePreview)}
+                accept="image/*"
+              />
+              {imagePreview && (
+                <div className="image-preview">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="preview-image"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="form-group full-width">
+              <label>Description</label>
+              <textarea
+                name="description"
+                value={editingChallenge.description}
+                onChange={(e) => handleInputChange(e, setEditingChallenge)}
+                placeholder="Challenge description and rules"
+                rows={3}
+              />
+            </div>
+          </div>
+          <div className="form-actions">
+            <button className="cancel-button" onClick={() => {
+              setIsEditing(false);
+              setEditingChallenge(null);
+              setImagePreview(null);
+            }}>
+              Cancel
+            </button>
+            <button className="submit-button" onClick={handleUpdateChallenge}>
+              Update Challenge
             </button>
           </div>
         </div>
@@ -268,7 +482,11 @@ const ChallengeManagement = () => {
                   {new Date(challenge.end_date).toLocaleDateString()}
                 </td>
                 <td className="actions">
-                  <button className="edit-button" title="Edit">
+                  <button 
+                    className="edit-button" 
+                    title="Edit"
+                    onClick={() => handleEditChallenge(challenge)}
+                  >
                     <FaEdit />
                   </button>
                   <button
